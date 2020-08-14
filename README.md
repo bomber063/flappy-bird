@@ -258,3 +258,52 @@ v10.13.0
     new ClassTest().fun1();
     ClassTest.fun2();
 ```
+## 小游戏逻辑和类梳理
+* canvas的绘图原理并不是一个资源对应一个图，它是一个剪裁和重绘的过程。
+* 游戏全局的**入口文件**，比如game.js，是微信小游戏必须有的一个文件。
+* **程序的主类**，比如Main.js,主要用来初始化canvas和一些全局对象，各个精灵和绑定点击事件。
+* **程序导演类**，比如Director.js,用到控制游戏的逻辑和精灵的创建与销毁，控制游戏主循环。场景的切换
+* **变量储存**，比如DataStore.js,存储游戏需要长期保存的变量和需要定时销毁的变量。
+* 游戏的**资源数组**，比如Resources.js
+* **资源加载器**，保证游戏是在图片加载完成后开始主循环。比如ResourceLoader.js，为了保证资源加载完后canvas才进行渲染。如果在加载完毕之前去执行JS逻辑会导致画面是一张白布。
+* **游戏精灵的基类**，背景，陆地，铅笔，小鸟等都是他的子类。比如Sprite.js.指代游戏中一切呈现的元素，可以进行旋转，变换，缩放，可以处理很多动画及包含很多内部的逻辑,**它可以说是整个游戏开发比较核心的概念**
+* **背景类**，比如Background.js，绑定图片资源。
+* **陆地类**，比如Land.js
+* **上半部分铅笔类**，比如UpPencil.js
+* **下半部分铅笔类**，比如DownPencil.js
+* **小鸟类**，比如Birds.js
+* **计分器类**，比如Score.js
+* **重新开始按钮**，比如StartButton.js
+### canvas图片渲染原理
+* canvas图片渲染原理是**一层一层向上叠的**
+* 把背景图翻到第一层，然后再方铅笔层，最后再把陆地放上去，那么铅笔的陆地部分就被遮住了。然后再画小鸟和计分器和按钮。
+* 铅笔是每隔一定距离定期的创建两组，判断屏幕中有两组铅笔，也就是4根铅笔。如果有4根然后再去从**右边屏幕创建**，如果多或者少就不处理，如果到了屏幕**左侧边缘就销毁**。铅笔的**高度是随机不一**的，做一个随机数加一个参数来限制铅笔上下伸缩的距离
+* 陆地部分就是不停的向左重绘，把左边屏幕消失的部分取回来放到右边接上。
+* 小鸟其实是三张图片不停的在切换，三张图片的翅膀方向不一样。所以看起来像是在飞。当渲染小鸟的时候，其实是整个canvas图片整个背景都在重绘。每一个像素都在重建和销毁。我们只要把握原则控制帧数，通过剪裁，拼接和各种障眼法就可以做出来需要的游戏。
+### 小游戏API
+* [小游戏的全局配置](https://developers.weixin.qq.com/minigame/dev/reference/configuration/app.html)
+    * 老师举了一个showStatusBar的例子
+* [创建步骤](https://developers.weixin.qq.com/minigame/dev/guide/#%E5%88%9B%E5%BB%BA%E7%94%BB%E5%B8%83)
+* 讲到的API
+    * 创建画布
+        ```js
+            const canvas = wx.createCanvas()
+        ```
+    * 上面是小游戏获取canvas，但是我们在WEB开发中首先要获取到DOM元素然后再用[canvas.getContext('2d')](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API)
+        ```js
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+        ```
+    * 微信小游戏的创建canvas底层也是干了WEB开发中的这件事。一个原理，做了一个简单的封装。
+    * [requestAnimationFrame](https://developers.weixin.qq.com/minigame/dev/api/render/frame/requestAnimationFrame.html),在下次进行重绘时执行，这是JS原生的函数，原生JS里面也有[requestAnimationFrame](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame)
+    * [wx.setPreferredFramesPerSecond(number fps)](https://developers.weixin.qq.com/minigame/dev/api/render/frame/wx.setPreferredFramesPerSecond.html),可以修改渲染帧率。默认渲染帧率为 60 帧每秒。修改后，requestAnimationFrame 的回调频率会发生改变。**但是不建议使用这个方法，因为刷新率低于60帧，肉眼是可以看到的，除非是一些精致的画面可以用这个方法提高程序的性能**
+    * [生命周期](https://developers.weixin.qq.com/minigame/dev/api/base/app/life-cycle/wx.onShow.html)
+        * wx.onShow——监听小游戏回到前台的事
+        * wx.onHide——监听小游戏隐藏到后台事件。锁屏、按 HOME 键退到桌面、显示在聊天顶部等操作会触发此事件。
+        * wx.offShow——取消监听小游戏回到前台的事件
+        * wx.offHide——取消监听小游戏隐藏到后台事件
+        * wx.getLaunchOptionsSync——获取小游戏启动时的参数
+        * wx.exitMiniProgram——退出当前小游戏
+    * [wx.triggerGC()](https://developers.weixin.qq.com/minigame/dev/api/base/performance/wx.triggerGC.html),加快触发 JavaScriptCore 垃圾回收（Garbage Collection）。GC 时机是由 JavaScriptCore 来控制的，并不能保证调用后马上触发 GC。
+* 因为在微信自己创建的打飞机游戏目录js->libs->weapp-adapter.js已经有一个`wx.createCanvas()`，如果我们在创建一个canvas会导致一个离屏的canvas。**离屏简单的理解就是不可见的**，所以最好把它删除掉。
+* 在webStorm中在需要修复的地方按**alt+Enter**会进行程序的一些修补。然后可以选择按右键可以看到修复所有问题。

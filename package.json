@@ -1,21 +1,19 @@
 {
-  "name": "flappy",
+  "name": "flappy-bird",
   "version": "1.0.0",
-  "description": "* 快速体验，短声明周期，转化率高（可以用于投放广告，做自己的宣传和找工作都有用处） * 体验优于手机网页（手机网页游戏和小程序游戏都是基于canvas开发的，但是网页对于不同的浏览器渲染的体验不同，打开网页也相对麻烦，需要记住URL，还需要loading） * 不需要像App下载和注册（开箱即用，用完可以弃掉） ## 小游戏/小程序展望 * 一个趋势，替代过重的APP和体验差的手机网页（有自己的生态圈） * 快速引流，如果小游戏粉丝多，可以引导用户从小游戏向APP过渡 * 不需推销人员推销就可以火爆，因为微信用户很多，作为一种新的开发理念在更多互联网入口平台流行 ## 额外信息 * 使用ES5和ES6两个版本面向对象开发小游戏 ## 开发环境 * 使用了比较友好的IDE（比如WebStorm） * 安装node和babel等工具链 ## 小游戏起步 * 起步见[小游戏官网](https://developers.weixin.qq.com/minigame/dev/guide/#%E5%AE%89%E8%A3%85%E5%B9%B6%E5%90%AF%E5%8A%A8%E5%BC%80%E5%8F%91%E8%80%85%E5%B7%A5%E5%85%B7) * 在小游戏官方的开发软件中新建一个项目会自动生成一个打飞机的游戏。 * 小游戏只有两个必要文件：     1. game.js 小游戏入口文件     2. game.json 配置文件 ```sh |--game.js |--game.json ``` * 开发者工具中的编译按钮主要是把**ES6的语法编译成ES5的语法**，提交审核的时候是提交ES5的语法的代码，因为微信的是内置的X5内核的浏览器，其他很多浏览器ES5以上的并不是百分百支持。但是支持ES5代码。 所以需要这个编译的过程。 * 微信开发者工具的编译是在改代码后会自动编译的。不需要手动点击。 ## 用webStorm编辑器开发（设置支持ES6） * 不知道是不是版本问题老师打开的会显示一些红色下换线可能是警告。但是我的没有（因为我的版本可能默认设置成了支持ES6），这里老师解释的是webstorm只支持ES5，所以需要设置一下webstorm * 按照下面路径设置文件->设置（preferences）->语言和框架->JavaScript->JavaScript language version，版本选择ECMAScript6即可 * 设置好了后老师的会显示是否需要File watcher去监控文件的变化，并用babel把ES6转义为ES5。同时生成到dist目录下。但是我这里没有显示。[babel官网](https://babeljs.io/)和[中文网站](https://www.babeljs.cn/) ## 安装babel和cmpm * 根据[官网安装](https://babeljs.io/docs/en/usage)即可。 * 如果速度慢可以使用[淘宝 NPM 镜像](https://developer.aliyun.com/mirror/NPM?from=tnpm) ```sh npm install -g cnpm --registry=https://registry.npm.taobao.org ``` * [CNPM 宝藏库](https://github.com/chuzhixin/vue-admin-beautiful) * babel官网建议我们不要全局安装，全局安装是在任何地方都可以访问。因为不同的babel版本的中间解析方式和代码的优化程度不一样，可能会有冲突，所以推荐安装在局部的相应本地的位置上 ### ES6转换为ES5测试 * 然后设置目标目录和生成的目录 ```sh ./node_modules/.bin/babel src --out-dir lib ``` * npm@5.2.0 to shorten that command by replacing ./node_modules/.bin/babel with npx babel. * 不过运行上面代码需要有src目录,不然会报错src does not exist ```sh $ ./node_modules/.bin/babel src --out-dir lib babel:   src does not exist",
-  "main": "index.js",
-  "dependencies": {},
-  "devDependencies": {},
+  "description": "## 源码目录介绍 ``` ./js ├── base                                   // 定义游戏开发基础类 │   ├── animatoin.js                       // 帧动画的简易实现 │   ├── pool.js                            // 对象池的简易实现 │   └── sprite.js                          // 游戏基本元素精灵类 ├── libs │   ├── symbol.js                          // ES6 Symbol简易兼容 │   └── weapp-adapter.js                   // 小游戏适配器 ├── npc │   └── enemy.js                           // 敌机类 ├── player │   ├── bullet.js                          // 子弹类 │   └── index.js                           // 玩家类 ├── runtime │   ├── background.js                      // 背景类 │   ├── gameinfo.js                        // 用于展示分数和结算界面 │   └── music.js                           // 全局音效管理器 ├── databus.js                             // 管控游戏状态 └── main.js                                // 游戏入口主函数",
+  "main": "game.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bomber063/flappy-bird.git"
-  },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/bomber063/flappy-bird/issues"
+  "devDependencies": {
+    "@babel/cli": "^7.10.5",
+    "@babel/core": "^7.11.1",
+    "@babel/preset-env": "^7.11.0"
   },
-  "homepage": "https://github.com/bomber063/flappy-bird#readme"
+  "dependencies": {
+    "@babel/polyfill": "^7.10.4"
+  }
 }
