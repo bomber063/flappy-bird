@@ -307,3 +307,47 @@ v10.13.0
     * [wx.triggerGC()](https://developers.weixin.qq.com/minigame/dev/api/base/performance/wx.triggerGC.html),加快触发 JavaScriptCore 垃圾回收（Garbage Collection）。GC 时机是由 JavaScriptCore 来控制的，并不能保证调用后马上触发 GC。
 * 因为在微信自己创建的打飞机游戏目录js->libs->weapp-adapter.js已经有一个`wx.createCanvas()`，如果我们在创建一个canvas会导致一个离屏的canvas。**离屏简单的理解就是不可见的**，所以最好把它删除掉。
 * 在webStorm中在需要修复的地方按**alt+Enter**会进行程序的一些修补。然后可以选择按右键可以看到修复所有问题。
+## 开始在WEB上写代码
+* 用到一些ES6语法，可以参考[阮一峰的ES6]()
+* 面向对象有类的概念，最好类多代码少
+* 创建一个js目录里面有三个目录
+    * base——基本工具类。比如datastore,resource,resourceLoader和sprite
+    * runtime——游戏场景环境的资源。比如陆地类和背景类，还有铅笔类。
+    * player——跟玩家交互的类。不断变化的类，比如birds.js，score.js,StartButton.js
+### 创建文件
+* 创建base目录，目录里面的文件
+    * DateStore.js
+    * ResourceLoader.js
+    * Resource.js
+    * Sprite.js
+* 创建player目录。目录里面的文件
+    * Birds.js
+    * Score.js
+    * StartButton.js
+* 创建runtime目录，目录里面的文件
+    * BackGround.js
+    * DownPencil.js
+    * Land.js
+    * UpPencil.js
+* 创建Director.js和Main.js
+#### 解决报错
+* 注意如果需要使用import，需用在[type](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/script)里面写上`type="module"`,不然会报下面的错误。
+```js
+Uncaught SyntaxError: Cannot use import statement outside a module
+```
+* 解决办法[参考](https://blog.csdn.net/qq_43340929/article/details/101862294)
+```html
+    <script type="module" src="game.js"></script>
+```
+* 注意webStorm可以在new一个函数的时候会自动创建import，具体设置看这里[IDEA 实用功能Auto Import：自动优化导包（自动删除、导入包）](https://www.cnblogs.com/mithrandirw/p/8819314.html),这里import的路径需要带后缀比如Main.js，不然会报错如下
+```
+GET http://127.0.0.1:8080/Main net::ERR_ABORTED 404 (Not Found)
+```
+* 修改为加后缀的比如Main.js才避免浏览器报错。**但是在微信开发者工具中是正确的，我还需要测试一下，老师说的**
+```js
+import {Main} from "./Main.js";
+
+new Main()
+```
+### 小结报错（关于type和后缀）
+* **如果使用了ES6语法的JS，如果没有用babel进行转义为ES5，有import或者export，这里的type一定要是module，并且import的时候路径必须要把完整的文件名字写上，包括后缀.js，不要省略**
