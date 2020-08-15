@@ -310,6 +310,10 @@ v10.13.0
 ## 开始在WEB上写代码
 * 用到一些ES6语法，可以参考[阮一峰的ES6]()
 * 面向对象有类的概念，最好类多代码少
+* 为了与微信小游戏手机宽高一致，我们需要先获取小游戏开发程序上面的宽高然后在WEB上与之保持一致
+```html
+ <canvas id="game_canvas" width="375" height="667"></canvas>
+```
 * 创建一个js目录里面有三个目录
     * base——基本工具类。比如datastore,resource,resourceLoader和sprite
     * runtime——游戏场景环境的资源。比如陆地类和背景类，还有铅笔类。
@@ -332,7 +336,7 @@ v10.13.0
 * 创建Director.js和Main.js
 #### 解决报错
 * 注意如果需要使用import，需用在[type](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/script)里面写上`type="module"`,不然会报下面的错误。
-```js
+```
 Uncaught SyntaxError: Cannot use import statement outside a module
 ```
 * 解决办法[参考](https://blog.csdn.net/qq_43340929/article/details/101862294)
@@ -349,5 +353,131 @@ import {Main} from "./Main.js";
 
 new Main()
 ```
+* 另外还有一个小警告，
+```
+The value "<device-width>" for key "width" is invalid, and has been ignored.
+```
+* 主要是因为这段代码
+```html
+<meta name="viewport" content="width=<device-width>, initial-scale=1.0">
+```
+### 这个浏览器兼容问题已经处理了
+* 老师的视频比较古老了，下面的代码浏览器会报错,在ResourceLoader中前面有一个`map=null`
+```js
+import {Resources} from "./Resources.js";
+
+export class ResourceLoader{
+    map=null;
+    constructor(){
+        this.map=new Map(Resources)
+    }
+}
+```
+* 然后再Main.js中引入一个new，老版本的浏览器会报错，**但是我的新版本（版本 84.0.4147.125（正式版本） （64 位））不会报错**
+```js
+import {ResourceLoader} from "./js/base/ResourceLoader.js";
+
+export class Main{
+    constructor(){
+        console.log('我执行了')
+        new ResourceLoader()
+    }
+}
+```
 ### 小结报错（关于type和后缀）
 * **如果使用了ES6语法的JS，如果没有用babel进行转义为ES5，有import或者export，这里的type一定要是module，并且import的时候路径必须要把完整的文件名字写上，包括后缀.js，不要省略**
+## 加载图形资源
+* 创建res目录，里面存放图形，包括图形，开始按钮，背景，小鸟，陆地，上下铅笔等。
+* 把图片按照名字路径引入到变量Resources里面去。
+```js
+export const Resources=[
+    ['background', 'res/background.png'],
+    ['land', 'res/land.png'],
+    ['pencilUp', 'res/pie_up.png'],
+    ['pencilDown', 'res/pie_down.png'],
+    ['birds', 'res/birds.png'],
+    ['startButton', 'res/start_button.png'],
+    ['beginButton', 'res/begin.png']
+];
+```
+* 这里用到ES6的[Map对象](https://es6.ruanyifeng.com/?search=map&x=0&y=0#docs/set-map),ES6 提供了 Map 数据结构。它类似于对象，也是键值对的集合，**但是“键”的范围不限于字符串**，各种类型的值（包括对象）都可以当作键。也就是说，**Object 结构提供了“字符串—值”的对应，Map 结构提供了“值—值”的对应，是一种更完善的 Hash 结构实现**。如果你需要“键值对”的数据结构，Map 比 Object 更合适。
+* [Map() 构造函数](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map/Map)
+    * new Map([iterable])
+        * iterable 参数
+            * Iterable **可以是一个数组或者其他 iterable 对象，其元素为键值对(两个元素的数组，例如: [[ 1, 'one' ],[ 2, 'two' ]])。** 每个键值对都会添加到新的 Map。null 会被当做 undefined。
+* 一个Map对象在迭代时会根据对象中元素的插入顺序来进行 — 一个  for...of 循环在**每次迭代后会返回一个形式为[key，value]的数组**。
+* Map构造函数接受**数组作为参数**，实际上执行的是下面的算法。例子来自阮一峰老师[ES6教程](https://es6.ruanyifeng.com/?search=map&x=0&y=0#docs/set-map)，**返回的也是一个数组**
+```js
+const items = [
+  ['name', '张三'],
+  ['title', 'Author']
+];
+
+const map = new Map();
+
+items.forEach(
+  ([key, value]) => map.set(key, value)
+);
+```
+* [Map.prototype.set(key, value)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map/set)设置Map对象中键的值。返回该Map对象。
+### 数组里面有数组，并且foreach的参数如果是数组
+* 具体代码可以看[Jsbin](https://jsbin.com/yotijiwipi/1/edit?js,output)
+* 这里第三个1数数字，第四个1是字符串1，可以看jsbin里面的输出结果。也就是value的值是跟items里面的对应的数组的索引为0的值是一致的。 
+```js
+//这里第三个数组的第一个索引是数字1，第四个数组的第一个索引是字符串1
+const items = [
+  ['name', '张三'],
+  ['title', 'Author'],
+  [1,'哈哈'],
+  ['1','哈哈']
+];
+// console.log(items)
+const map = new Map();
+
+items.forEach(
+  ([value,value1],key) => console.log(key,value,value1)
+);
+//这里第三个1数数字，第四个1是字符串1，可以看jsbin里面的输出结果。也就是value的值是跟items里面的对应的数组的索引为0的值是一致的。 
+
+items.forEach(
+  ([value,key]) => console.log(key,value)
+);
+
+items.forEach(
+  (value,key) => console.log(key,value)
+);
+
+items.forEach(
+  (key,value) => console.log(key,value)
+);
+// console.log(map)
+```
+### 综上所描述我们可以知道Map构造函数下面代码的意思
+* ResourcesLoader里面的代码
+```js
+import {Resources} from "./Resources.js";
+
+export class ResourceLoader{
+    map=null;
+    constructor(){
+        this.map=new Map(Resources)
+        console.log(this.map)
+    }
+}
+
+//这里的this.map其实就是一个map数组
+```
+* 这里的this.map其实就是一个map数组,它在浏览器中打印的值如下
+```
+Map(7) {"background" => "res/background.png", "land" => "res/land.png", "pencilUp" => "res/pie_up.png", "pencilDown" => "res/pie_down.png", "birds" => "res/birds.png", …}
+[[Entries]]
+0: {"background" => "res/background.png"}
+1: {"land" => "res/land.png"}
+2: {"pencilUp" => "res/pie_up.png"}
+3: {"pencilDown" => "res/pie_down.png"}
+4: {"birds" => "res/birds.png"}
+5: {"startButton" => "res/start_button.png"}
+6: {"beginButton" => "res/begin.png"}
+size: (...)
+__proto__: Map
+```
