@@ -481,3 +481,119 @@ Map(7) {"background" => "res/background.png", "land" => "res/land.png", "pencilU
 size: (...)
 __proto__: Map
 ```
+### 使用Image对象创建图片
+* 用到[Image](https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLImageElement/Image)对象
+* 元素为键值对比如(两个元素的数组，例如: `[[ 1, 'one' ],[ 2, 'two' ]]`，所以这里是`[key,value]`,`[key,value]`中key就是资源的名字，value就是资料的相对路径
+* 微信中还可以使用 [wx.createImage()](https://developers.weixin.qq.com/minigame/dev/api/render/image/wx.createImage.html)
+* 在ResourceLoader.js里面代码
+```js
+export class ResourceLoader{
+    constructor(){
+        this.map=new Map(Resources)
+        //这里的[key.value]其实就是map里面的一个value，因为map里面的值都是键值对，
+        // 元素为键值对比如(两个元素的数组，例如: [[ 1, 'one' ],[ 2, 'two' ]])，所以这里是[key,value]
+        //[key,value]中key就是资源的名字，value就是资料的相对路径
+        for (let [key,value] of this.map){
+            const image=new Image();
+            // 微信中还可以使用 wx.createImage(),https://developers.weixin.qq.com/minigame/dev/api/render/image/wx.createImage.html
+            image.src=value;
+            this.map.set(key,image)//因为map对象里面的key和image是一一对应并且唯一的。把map里面的value替换成了真正的图片
+        //    也就是图片的相对路径替换成了图片的真正实例本身，并且已经加载了图片资源的图片本身
+        }
+        //上面的循环完后，那么map就变成了一个key对应一个Image对象
+    }
+}
+```
+* 循环完后，那么map就变成了一个key对应一个Image对象
+### 加载图片全部结束的方法及ResourceLoader类
+* 加载全部结束的方法，为了确保所有图片已经加载完毕，需要一个变量来确认并记录它的完毕
+* 用到[Map.prototype.values()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map/values),方法返回一个新的Iterator对象。它包含按顺序插入Map对象中每个元素的**value值**。
+#### 判断图片是否加载完成
+* [JavaScript判断图片是否加载完成的三种方式](https://www.cnblogs.com/snandy/p/3704938.html)
+* [判断图片是否加载完成的六种方式](https://www.cnblogs.com/zhusf/p/10607957.html),这里选择其中一种，就是使用html的img标签的[onload属性](https://developer.mozilla.org/zh-CN/docs/Mozilla/Tech/XUL/Attribute/image.onload),该事件的处理函数将会在 image 元素指示的图片加载完毕之后触发.
+* 用到API-[Map.prototype.size](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map/size),size 是可访问属性，用于返回 一个Map 对象的成员数量。
+* [static静态方法](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Classes/static),直接可以通过类来访问，而不需要new出这个类的实例来访问
+* 整个资源加载器代码
+```js
+//资源文件加载器，确保canvas在图片资源加载完成后才进行渲染
+import {Resources} from "./Resources.js";
+
+export class ResourceLoader{
+    constructor(){
+        this.map=new Map(Resources)
+        //这里的[key.value]其实就是map里面的一个value，因为map里面的值都是键值对，
+        // 元素为键值对比如(两个元素的数组，例如: [[ 1, 'one' ],[ 2, 'two' ]])，所以这里是[key,value]
+        //[key,value]中key就是资源的名字，value就是资料的相对路径
+        for (let [key,value] of this.map){
+            const image=new Image();
+            // 微信中还可以使用 wx.createImage(),https://developers.weixin.qq.com/minigame/dev/api/render/image/wx.createImage.html
+            image.src=value;
+            this.map.set(key,image)//因为map对象里面的key和image是一一对应并且唯一的。把map里面的value替换成了真正的图片
+        //    也就是图片的相对路径替换成了图片的真正实例本身，并且已经加载了图片资源的图片本身
+        }
+        //上面的循环完后，那么map就变成了一个key对应一个Image对象
+    }
+    //加载全部结束的方法，为了确保所有图片已经加载完毕，需要一个变量来确认并记录它的完毕
+    onLoaded(callback){
+        let loadedCount=0;
+        for(let value of this.map.values()){
+            //通过this.map.values()取出来的都是map里面的value，忽略掉它的key,不需要去管它的key了
+            value.onload=()=>{
+                loadedCount++
+                if(loadedCount>=this.map.size){
+                    callback(this.map)//加载完后执行回调callback，并传参数为this.map
+                    // console.log('加载完毕',callback)
+                }
+            }
+        }
+    }
+    static create(){
+        return new ResourceLoader()
+    }
+}
+```
+* 而在Main里面去使用这个ResourceLoader类
+```js
+import {ResourceLoader} from "./js/base/ResourceLoader.js";
+
+export class Main{
+    constructor(){
+        //这里用this的原因是整个Main都可以获取到它。canvas和ctx就是整个类的变量
+        this.canvas=document.getElementById('game_canvas')
+        this.ctx=this.canvas.getContext('2d')
+        const loader=ResourceLoader.create();
+        //把map传参到onResourceFisrtLoaded函数里面去
+        // console.log(loader)
+        //下面的map是获取到ResourceLoader里面的onLoaded传过来的参数实参this.map，在Main类里面用map作为形参代替
+        loader.onLoaded(map=>this.onResourceFisrtLoaded(map))
+    }
+    //资源只需要加载一次，其他都是重置逻辑就好了，所里这里是第一次加载资源
+    onResourceFisrtLoaded(map){
+        console.log(map)
+    }
+}
+```
+#### 箭头函数和非箭头函数的this
+* 非箭头函数获取外面的this需要通过一个变量来代替，比如下面用self来获取this
+```js
+    onLoaded(callback){
+        for(let value of this.map.values()){
+            //通过this.map.values()取出来的都是map里面的value，忽略掉它的key,不需要去管它的key了
+            let self=this
+            value.onload=function(){
+                self//self来获取到外面的this。
+            }
+        }
+    }
+```
+* 箭头函数可以直接获取到外面的this,**这个就比较方便**
+```js
+    onLoaded(callback){
+        for(let value of this.map.values()){
+            //通过this.map.values()取出来的都是map里面的value，忽略掉它的key,不需要去管它的key了
+            value.onload=()=>{
+                this//这个this永远都是指向外面的this
+            }
+        }
+    }
+```
