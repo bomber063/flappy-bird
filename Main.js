@@ -12,12 +12,28 @@ export class Main{
         // console.log(loader)
         //下面的map是获取到ResourceLoader里面的onLoaded传过来的参数实参this.map，在Main类里面用map作为形参代替,传给onResourceFisrtLoaded函数
         loader.onLoaded(map=>this.onResourceFisrtLoaded(map))
-        Director.getInstance()
-        Director.getInstance()
-        Director.getInstance()
+        // Director.getInstance()
+        // Director.getInstance()
+        // Director.getInstance()
+        let image=new Image();//新建的图片
+        image.src='res/background.png';
+        image.onload=()=>{//为了确保图片加载完成，需要把drawImage放到onload里面去
+            this.ctx.drawImage(
+                image,//被裁剪的图片
+                0,//x轴0开始切
+                0,//y轴0开始切
+                image.width,//被裁剪图片的宽度
+                image.height,//被裁剪图片的高度
+                0,//放置的位置,x轴0
+                0,//放置位置,y轴0
+                image.width,//目标canvas上绘制的宽度
+                image.height//目标canvas上绘制的高度
+            );
+        }
+
     }
     //资源只需要加载一次，其他都是重置逻辑就好了，所里这里是第一次加载资源
     onResourceFisrtLoaded(map){
-        console.log(map)
+        // console.log(map)
     }
 }

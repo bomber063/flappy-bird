@@ -636,3 +636,40 @@ export class Main{
     ....
 }
 ```
+## canvas图片加载填坑,图片创建和绘制在浏览器上
+* 这个API参数很多，具体看后面的MDN链接。使用到的API——[CanvasRenderingContext2D.drawImage()](https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/drawImage)
+* [Image()](https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLImageElement/Image)函数将会创建一个新的HTMLImageElement实例。它的功能等价于 document.createElement('img')
+* 并且用到获取图片的对象的宽高,[image.width和image.height](https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLImageElement/Image).
+* 前面的ResourceLoader.js里面只是内存中创建了image（**也就是只是new Image()**），但是没有画在页面上(**也就是没有drawImage()**)。
+* 在Main.js中使用了new Image()，然后开始drawImage(),但是这里要确保是图片加载完成后才可以在浏览器中看到，也就是**还要使用onload**
+```js
+export class Main{
+    constructor(){
+        this.canvas=document.getElementById('game_canvas')
+        this.ctx=this.canvas.getContext('2d')
+        const loader=ResourceLoader.create();
+        loader.onLoaded(map=>this.onResourceFisrtLoaded(map))
+
+        let image=new Image();//新建的图片
+        image.src='res/background.png';
+        image.onload=()=>{//为了确保图片加载完成，需要把drawImage放到onload里面去
+            this.ctx.drawImage(
+                image,//被裁剪的图片
+                0,//x轴0开始切
+                0,//y轴0开始切
+                image.width,//被裁剪图片的宽度
+                image.height,//被裁剪图片的高度
+                0,//放置的位置,x轴0
+                0,//放置位置,y轴0
+                image.width,//目标canvas上绘制的宽度
+                image.height//目标canvas上绘制的高度
+            );
+        }
+
+    }
+    //资源只需要加载一次，其他都是重置逻辑就好了，所里这里是第一次加载资源
+    onResourceFisrtLoaded(map){
+        // console.log(map)
+    }
+}
+```
