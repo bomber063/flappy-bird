@@ -597,3 +597,42 @@ export class Main{
         }
     }
 ```
+## 单例模式（导演类director类设计为单例）
+* [JavaScript设计模式之单例模式](https://www.cnblogs.com/cangowu/p/5062130.html),单例就是保证一个类只有一个实例，**实现方法一般是先判断实例存在与否，如果存在直接返回，如果不存在就创建了再返回**，这就确保了一个类只有一个实例对象。在JavaScript里，单例作为一个命名空间提供者，从全局命名空间里提供一个唯一的访问点来访问该对象。
+* 一个剧场里面只允许有一个导演。
+* Director.js代码如下
+```js
+//导演雷，控制游戏的逻辑
+export class Director{
+
+    constructor(){
+        console.log('构造器初始化')
+    }
+
+    static getInstance(){
+        //单例模式就是如果不存在就创建
+        if(!Director.instance){
+            Director.instance=new Director()
+        }
+        // 如果存在就直接返回。
+        return Director.instance;
+    }
+}
+```
+* 然后再Main.js里面引入，并且执行多次，但是打出的`构造器初始化`只有一次
+```js
+//初始化整个游戏的精灵，作为游戏开始的入口
+...
+import {Director} from "./js/Director.js";
+
+export class Main{
+    constructor(){
+        ....
+        // 这里有多次获取实例，但是浏览器控制台只会打印一次构造器初始化
+        Director.getInstance()
+        Director.getInstance()
+        Director.getInstance()
+    }
+    ....
+}
+```
