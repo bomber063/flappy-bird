@@ -673,3 +673,98 @@ export class Main{
     }
 }
 ```
+## 基础精灵类的封装与静态背景的实现
+### 父类Sprite.js(基础精灵类)
+* 用到ES6的[默认值](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Functions/default_parameters)，也就是没有传参数的时候默认会有这些参数和对应的值。
+```js
+//精灵的基类，负责初始化精灵加载的资源和大小及位置，它是一个父类，其它精灵都是继承它
+export class Sprite{
+
+    //括号里面的是ES6的默认值，也就是没有传参数的时候默认会有这些参数和对应的值。
+constructor(ctx=null,
+        img = null,
+        srcX = 0,
+        srcY = 0,
+        srcW = 0,
+        srcH = 0,
+        x = 0, y = 0,
+        width = 0, height = 0) {
+            //下面获取的值变量就是上面的值，如果没有传值也有默认值。
+    this.ctx=ctx;
+    this.img = img;
+    this.srcX = srcX;
+    this.srcY = srcY;
+    this.srcW = srcW;
+    this.srcH = srcH;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    }
+
+        /**
+     * img 传入Image对象
+     * srcX 要剪裁的起始X坐标
+     * srcY 要剪裁的起始Y坐标
+     * srcW 剪裁的宽度
+     * srcH 剪裁的高度
+     * x 放置的x坐标
+     * y 放置的y坐标
+     * width 要使用的宽度
+     * height 要使用的高度
+     */
+    // 上面是创建变量，下面是在浏览器中显示图形
+    draw() {
+       this.ctx.drawImage(
+           this.img,
+           this.srcX,
+           this.srcY,
+           this.srcW,
+           this.srcH,
+           this.x,
+           this.y,
+           this.width,
+           this.height
+       );
+   }
+}
+```
+### 继承父类Sprite.js的BackGround.js（静态背景）
+* BackGround继承Sprite类,它的constructor只需要传两个参数。这个ctx和image是通过Main.js里面的代码传值过来的。
+* 继承调用[super]( https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/super)就可以直接使用父类的函数了
+* 用到的API
+    * [innerWidth](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/innerWidth)
+    * [innerHeight](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/innerHeight)
+```js
+//背景
+import {Sprite} from "../base/Sprite.js";
+
+export class BackGround extends Sprite{//BackGround继承Sprite类
+    constructor(ctx,image){//只需要传两个参数。这个ctx和image是通过Main.js里面的代码传值过来的
+        //继承的话，调用super就可以直接使用父类的函数了
+        // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/super
+        super(ctx,image,
+            0,0,
+            image.width,image.height,
+            0,0,
+            // innerWidth和innerHeight,
+            // https://developer.mozilla.org/zh-CN/docs/Web/API/Window/innerHeight
+            // https://developer.mozilla.org/zh-CN/docs/Web/API/Window/innerWidth
+            window.innerWidth,window.innerHeight
+            )
+    }
+}
+```
+### 在Main中引用Background类并且调用即可
+* 需要在onResourceFisrtLoaded函数中，因为通过类ResourceLoader.js会传map对象过来。
+* 用到API
+    * [Map.prototype.get()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map/get),map.get就是获取map对象里面元素键值的key对应的value，因为前面的value已经变为图片的实例了，所以这里就是background的图片实例.
+```js
+    onResourceFisrtLoaded(map){
+        // console.log(map)
+        //map.get就是获取map对象里面元素键值的key对应的value，因为前面的value已经变为图片的实例了，所以这里就是background的图片实例
+        let background=new BackGround(this.ctx,map.get('background'));
+        //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
+        background.draw();
+    }
+```
