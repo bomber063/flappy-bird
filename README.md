@@ -320,7 +320,7 @@ v10.13.0
     * player——跟玩家交互的类。不断变化的类，比如birds.js，score.js,StartButton.js
 ### 创建文件
 * 创建base目录，目录里面的文件
-    * DateStore.js
+    * DataStore.js
     * ResourceLoader.js
     * Resource.js
     * Sprite.js
@@ -767,4 +767,155 @@ export class BackGround extends Sprite{//BackGround继承Sprite类
         //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
         background.draw();
     }
+```
+## 资源管理器的封装
+* 资源管理的信息全局只有一个，那么就创建一个单例。
+* 所有的数据放到DataStore.js里面进行统一的管理。我们不管再任何类里面只要取到DataStore这个对象，就可以获取到整个全局的所有变量。这是设计上的问题。
+### DataStore.js
+* 需要销毁的保存到map中，也就是constructor构造器中，需要长期保存的就放在DataStore这个类变量中。
+* DataStore.js的代码
+```js
+//变量缓存器，方便我们在不同的类中访问和修改变量
+export class DataStore{//需要长期保存的就存放在DataStore这个类变量中
+    //静态方法创建单例
+    static getInstance(){
+        if(!DataStore.instance){
+            DataStore.instance=new DataStore();
+        }
+        return DataStore.instance
+    }
+
+    constructor(){//需要销毁的保存在map中
+        this.map=new Map();
+    }
+
+    put(key,value){//设置，这样写可以链式put
+        this.map.set(key,value);
+        return this;
+    }
+
+    get(key){//获取
+        return this.map.get(key);
+    }
+
+    destroy(){//销毁，把map对象里面的value都设置为null
+        for (let value of this.map.values()){
+            value=null;
+        }
+    }
+}
+```
+### DataStore.js
+* 因为在ResourceLoader.js中已经把map对象的value循环赋值为图片的实例了，所以通过map，也就是this.dataStore.get('background')，它就是DataStorm.js类中的this.map.get(key)。
+* 所有的**逻辑运行，销毁和创建等**(这里就是暂时指draw，绘制的过程)放到Director.js里面，那么就不应在Main.js里面操作啦。可以在导演类Director.js中创建一个run方法。
+* 导演类Director.js代码
+```js
+//导演类，控制游戏的逻辑
+import {DataStore} from "./base/DataStore.js";
+
+export class Director{
+
+    static getInstance(){
+        //单例模式就是如果不存在就创建
+        if(!Director.instance){
+            Director.instance=new Director()
+        }
+        // 如果存在就直接返回。
+        return Director.instance;
+    }
+
+    constructor(){
+        this.dataStore=DataStore.getInstance();
+    }
+
+    run(){
+        //因为在ResourceLoader.js中已经把map对象的value循环赋值为图片的实例了，所以通过map，也就是this.dataStore.get('background')，它就是DataStorm.js类this.map.get(key)
+        const backgroundSprite=this.dataStore.get('background');
+        backgroundSprite.draw();
+    }
+}
+```
+### Director.js导演类
+* 在Director.js的init方法里面。当第一次加载完成后需要给this.dataStore赋值**一些永远不变的值**,这里不需要使用dataStore中的put方法，因为这些永远不变的值是不需要销毁的。可以一同放到单例类变量中，而在游戏完成后需要销毁的才使用put,把它放到dataStore的map中。
+* onResourceFisrtLoaded方法里面的下面两句代码被init函数替代
+```js
+         let background=new BackGround(this.ctx,map.get('background'));
+        //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
+         background.draw();
+```
+* init函数
+```js
+    init(){
+        //image图片对象信息通过下面的put传进来
+        this.dataStore
+            .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
+        // let background=new BackGround(this.ctx,map.get('background'));
+        //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
+        // this.dataStore.res.background.draw();这句话代码通过导演类Director里面的方法来执行
+        Director.getInstance().run();
+        
+        //上面的代码就是使用dataStore的get方法去获取图片实例。
+        // const backgroundSprite=this.dataStore.get('background');
+        // backgroundSprite.draw();
+    }
+```
+* Director.js导演类和数据储存类DataStore.js需要在Main.js中引入
+```js
+import {ResourceLoader} from "./js/base/ResourceLoader.js";
+import {Director} from "./js/Director.js";
+import {BackGround} from "./js/runtime/BackGround.js";
+import {DataStore} from "./js/base/DataStore.js";
+
+export class Main{
+    constructor(){
+        //这里用this的原因是整个Main都可以获取到它。canvas和ctx就是整个类的变量
+        this.canvas=document.getElementById('game_canvas')
+        this.ctx=this.canvas.getContext('2d');
+        this.dataStore=DataStore.getInstance();
+        const loader=ResourceLoader.create();
+        loader.onLoaded(map=>this.onResourceFisrtLoaded(map));
+        //下面的背景图片创建和绘制的的代码由init函数里面的DataStore类和导演类Director.js完成
+        // let image=new Image();//新建的图片
+        // image.src='res/background.png';
+        // image.onload=()=>{//为了确保图片加载完成，需要把drawImage放到onload里面去
+        //     this.ctx.drawImage(//这里的drawImage才是会图片呈现到浏览器上。
+        //         image,//被裁剪的图片
+        //         0,//x轴0开始切
+        //         0,//y轴0开始切
+        //         image.width,//被裁剪图片的宽度
+        //         image.height,//被裁剪图片的高度
+        //         0,//放置的位置,x轴0
+        //         0,//放置位置,y轴0
+        //         image.width,//目标canvas上绘制的宽度
+        //         image.height//目标canvas上绘制的高度
+        //     );
+        // }
+
+    }
+    //资源只需要加载一次，其他都是重置逻辑就好了，所里这里是第一次加载资源
+    onResourceFisrtLoaded(map){
+        //当第一次加载完成后需要给this.dataStore赋值一些永远不变的值,这里不需要使用dataStore中的put方法，因为这些永远不变的值是不需要销毁的。可以一同放到单例类变量中，而在游戏完成后需要销毁的才使用put,把它放到dataStore的map中。
+        this.dataStore.ctx=this.ctx;
+        this.dataStore.res=map;
+        //map.get就是获取map对象里面元素键值的key对应的value，因为前面的value已经变为图片的实例了，所以这里就是background的图片实例
+        // let background=new BackGround(this.ctx,map.get('background'));
+        //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
+        // background.draw();
+        this.init();
+    }
+
+    init(){
+        //image图片对象信息通过下面的put传进来
+        this.dataStore
+            .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
+        // let background=new BackGround(this.ctx,map.get('background'));
+        //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
+        // this.dataStore.res.background.draw();这句话代码通过导演类Director里面的方法来执行
+        Director.getInstance().run();
+        
+        //上面的代码就是使用dataStore的get方法去获取图片实例。
+        // const backgroundSprite=this.dataStore.get('background');
+        // backgroundSprite.draw();
+    }
+}
 ```
