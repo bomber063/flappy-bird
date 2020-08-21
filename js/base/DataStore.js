@@ -13,6 +13,9 @@ export class DataStore{//需要长期保存的就存放在DataStore这个类变�
     }
 
     put(key,value){//设置，这样写可以链式put
+        if(typeof value ==='function'){//帮Main.js省略了new的步骤
+            value=new value();
+        }
         this.map.set(key,value);
         return this;
     }

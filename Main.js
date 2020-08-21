@@ -11,10 +11,10 @@ export class Main{
         this.ctx=this.canvas.getContext('2d');
         this.dataStore=DataStore.getInstance();
         const loader=ResourceLoader.create();
-        //把map传参到onResourceFisrtLoaded函数里面去
+        //把map传参到onResourceFirstLoaded函数里面去
         // console.log(loader)
-        //下面的map是获取到ResourceLoader里面的onLoaded传过来的参数实参this.map，在Main类里面用map作为形参代替,传给onResourceFisrtLoaded函数
-        loader.onLoaded(map=>this.onResourceFisrtLoaded(map));
+        //下面的map是获取到ResourceLoader里面的onLoaded传过来的参数实参this.map，在Main类里面用map作为形参代替,传给onResourceFirstLoaded函数
+        loader.onLoaded(map=>this.onResourceFirstLoaded(map));
         // Director.getInstance()
         // Director.getInstance()
         // Director.getInstance()
@@ -36,7 +36,7 @@ export class Main{
 
     }
     //资源只需要加载一次，其他都是重置逻辑就好了，所里这里是第一次加载资源
-    onResourceFisrtLoaded(map){
+    onResourceFirstLoaded(map){
         //当第一次加载完成后需要给this.dataStore赋值一些永远不变的值,这里不需要使用dataStore中的put方法，因为这些永远不变的值是不需要销毁的。可以一同放到单例类变量中，而在游戏完成后需要销毁的才使用put,把它放到dataStore的map中。
         this.dataStore.ctx=this.ctx;
         this.dataStore.res=map;
@@ -51,7 +51,12 @@ export class Main{
     init(){
         //image图片对象信息通过下面的put传进来
         this.dataStore
-            .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
+            // .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
+            // .put('background',new BackGround());
+            .put('background',BackGround);
+        // console.log(typeof BackGround)//这里打出来是function
+
+
         // let background=new BackGround(this.ctx,map.get('background'));
         //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
         // this.dataStore.res.background.draw();这句话代码通过导演类Director里面的方法来执行

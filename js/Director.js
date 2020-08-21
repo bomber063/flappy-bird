@@ -1,5 +1,6 @@
 //导演雷，控制游戏的逻辑
 import {DataStore} from "./base/DataStore.js";
+import {BackGround} from "./runtime/BackGround.js";
 
 export class Director{
 
@@ -19,7 +20,7 @@ export class Director{
     }
 
     run(){
-        //因为在ResourceLoader.js中已经把map对象的value循环赋值为图片的实例了，所以通过map，也就是this.dataStore.get('background')，它就是this.map.get(key)
+        //因为在Main.js中已经通过init函数里面的this.dataStore.put('background',new BackGround()),把background图片设置了，那么就可以使用get('background')方法获取到
         const backgroundSprite=this.dataStore.get('background');
         backgroundSprite.draw();
     }

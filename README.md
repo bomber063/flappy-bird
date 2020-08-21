@@ -919,3 +919,203 @@ export class Main{
     }
 }
 ```
+## 一个后缀名字的坑补充
+* 如果用import的时候，路径后缀的js如果是大写的在浏览器上不会报错，但是在微信小程序开发上会报错
+```js
+import {DataStore} from "./DataStore.js";
+//把路径的后缀改成大写在浏览器上不报错，但是在微信小程序上会报错
+import {DataStore} from "./DataStore.JS";
+```
+## 优化与封装代码，让代码更有设计感
+* 对面向对象做一些填坑和调整和优化。
+### 在基类Sprite.js上做一些修改
+* 因为在Main.js的onResourceFisrtLoaded函数已经把ctx赋值给了DataStore
+```js
+    onResourceFisrtLoaded(map){
+        //当第一次加载完成后需要给this.dataStore赋值一些永远不变的值,这里不需要使用dataStore中的put方法，因为这些永远不变的值是不需要销毁的。可以一同放到单例类变量中，而在游戏完成后需要销毁的才使用put,把它放到dataStore的map中。
+        this.dataStore.ctx=this.ctx;
+        this.dataStore.res=map;
+        // console.log(map)
+        //map.get就是获取map对象里面元素键值的key对应的value，因为前面的value已经变为图片的实例了，所以这里就是background的图片实例
+        // let background=new BackGround(this.ctx,map.get('background'));
+        //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
+        // background.draw();
+        this.init();
+    }
+```
+* 所以DataStore可以直接获取到ctx.也就是
+```js
+this.ctx=this.canvas.getContext('2d')
+```
+* draw函数里面增加参数:目的是两点
+    1.如果没有传参数，那么就用上面constructor里面的参数
+    2.如果传参数了，就使用所传的参数
+* draw函数里面参数中已经传了值，所以这个函数里面获取值不需要使用this了。
+* 所以基类Sprite.js可以通过DataStore获取ctx
+```js
+//精灵的基类，负责初始化精灵加载的资源和大小及位置，它是一个父类，其它精灵都是继承它
+import {DataStore} from "./DataStore.js";
+
+export class Sprite{
+
+    //括号里面的是ES6的默认值，也就是没有传参数的时候默认会有这些参数和对应的值。
+constructor(img = null,
+        srcX = 0,
+        srcY = 0,
+        srcW = 0,
+        srcH = 0,
+        x = 0, y = 0,
+        width = 0, height = 0) {
+            //下面获取的值变量就是上面的值，如果没有传值也有默认值。
+    // this.ctx=ctx;
+    this.dataStore=DataStore.getInstance();
+    //通过Main.js可以得知：this.dataStore.ctx就是this.ctx=this.canvas.getContext('2d')
+    this.ctx=this.dataStore.ctx;
+    this.img = img;
+    this.srcX = srcX;
+    this.srcY = srcY;
+    this.srcW = srcW;
+    this.srcH = srcH;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    }
+
+        /**
+     * img 传入Image对象
+     * srcX 要剪裁的起始X坐标
+     * srcY 要剪裁的起始Y坐标
+     * srcW 剪裁的宽度
+     * srcH 剪裁的高度
+     * x 放置的x坐标
+     * y 放置的y坐标
+     * width 要使用的宽度
+     * height 要使用的高度
+     */
+    // 上面是创建变量，下面是在浏览器中显示图形
+        //这里面增加参数是为了两点
+        //1.如果没有传参数，那么就用上面constructor里面的参数
+        //2.如果传参数了，就使用所传的参数
+    draw(img=this.img,
+         srcX=this.srcX,
+         srcY=this.srcY,
+         srcW=this.srcW,
+         srcH=this.srcH,
+         x=this.x,
+         y=this.y,
+         width=this.width,
+         height=this.height
+        ) {
+        //参数中已经传了值，所以下面可以直接使用了，不需要前面的this了
+       this.ctx.drawImage(
+           // this.img,
+           // this.srcX,
+           // this.srcY,
+           // this.srcW,
+           // this.srcH,
+           // this.x,
+           // this.y,
+           // this.width,
+           // this.height
+           img,
+           srcX,
+           srcY,
+           srcW,
+           srcH,
+           x,
+           y,
+           width,
+           height
+       );
+   }
+
+}
+```
+* 为了让Background类获取到图片这里添加一个静态方法,在Sprite.js中添加一个static方法不需要new一个实例去访问它。直接用类去访问就行。
+```js
+  static getImage(key){//这里的key就会对应哪一个图片，比如有background,DownPencil,Land等
+      return DataStore.getInstance().res.get(key);
+  }
+```
+
+### Background.js上做一些修改
+* 由于基类Sprite.js做了相应的修改，那么继承它的相应的类也要做相应的修改。
+#### super之前是不可以使用this的
+* 比如下面在Background.js类中的代码使用this是会报错的。
+```js
+import {Sprite} from "../base/Sprite.js";
+
+export class BackGround extends Sprite{
+    constructor(ctx,image){
+        this//这里使用this是会报错的
+        super(ctx,image,
+            0,0,
+            image.width,image.height,
+            0,0,
+            window.innerWidth,window.innerHeight
+            )
+    }
+}
+```
+* 因为前面说的情况this不可用，这样就不可以访问到类了。但是我们可以变通一下，通过Sprite.js的静态方法去访问图片实例。
+* Sprite.getImage('background');这句话=后面也可以使用BackGround.getImage('background')，因为继承了Sprite.js
+```js
+import {Sprite} from "../base/Sprite.js";
+
+export class BackGround extends Sprite{
+
+    constructor(){
+        const image=Sprite.getImage('background');//这句话=后面也可以使用BackGround.getImage('background')，因为继承了Sprite.js
+        super(image,
+            0,0,
+            image.width,image.height,
+            0,0,
+            window.innerWidth,window.innerHeight
+            )
+    }
+}
+```
+### Main.js就可以少写一些参数啦
+* 然后再Main.js的init方法就可以省略参数了
+```js
+    init(){
+        this.dataStore
+            // .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
+            .put('background',new BackGround())
+        Director.getInstance().run();
+    }
+```
+### Director.js中的run方法里面可以使用this.dataStore.get方法的原因
+* Director.js中的run方法里面可以使用this.dataStore.get方法,是因为在Main.js中已经通过init函数里面的this.dataStore.put('background',new BackGround())
+```js
+    run(){
+        //因为在Main.js中已经通过init函数里面的this.dataStore.put('background',new BackGround()),把background图片设置了，那么就可以使用get('background')方法获取到
+        const backgroundSprite=this.dataStore.get('background');
+        backgroundSprite.draw();
+    }
+```
+### DataStore.js类里面修改,让Main.js省略new的过程
+* **其实ES6的class是作为一个function而存在的，而它里面的类变量和类方法其实就是ES的原型链上的变量和方法（函数）**，那么就可以在DataStore.js的put函数里面去判断穿进去的value是不是一个function，如果是function，那么直接帮它new，这样在Main.js就不需要new的过程啦
+```js
+    put(key,value){//设置，这样写可以链式put
+        if(typeof value ==='function'){//帮Main.js省略了new的步骤
+            value=new value();
+        }
+        this.map.set(key,value);
+        return this;
+    }
+```
+* 那么Main.js的代码就可以省了new的过程啦
+```js
+    init(){
+        this.dataStore
+
+            // .put('background',new BackGround());
+            .put('background',BackGround);
+            console.log(typeof BackGround)//这里打出来是function
+
+        Director.getInstance().run();
+
+    }
+```
