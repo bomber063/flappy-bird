@@ -1125,17 +1125,13 @@ export class BackGround extends Sprite{
 ```js
 (function(){
     'use strict';
-    //函数声明,它是google和老师不推荐的写法，它会把function的作用域提升到所有的变量之前。也就是当JS文件一加载就会初始化这个function,而不管你写在什么位置。这样的话，如果我们需要用条件去判断一个function是否创造，或者给function赋值不同的执行体的时候。就不行了。
-    // function Animal(){}这种就是函数声明
-    //下面的就是函数表达式
     var Animal=function(name,age){
         this.name=name;
         this.age=age;
-        this.say=function(){
+        this.say=function(){//通过this给增加一个say方法
             console.log(this.name+' '+this.age);
         }
     };
-    //使用的时候就使用new，然后传值参数即可
     var cat=new Animal('小猫','3');
     cat.say()
 
@@ -1153,17 +1149,13 @@ $ node es5.js
 ```js
 (function(){
     'use strict';
-    //函数声明,它是google和老师不推荐的写法，它会把function的作用域提升到所有的变量之前。也就是当JS文件一加载就会初始化这个function,而不管你写在什么位置。这样的话，如果我们需要用条件去判断一个function是否创造，或者给function赋值不同的执行体的时候。就不行了。
-    // function Animal(){}这种就是函数声明
-    //下面的就是函数表达式
     var Animal=function(name,age){
         this.name=name;
         this.age=age;
     };
-    Animal.prototype.say=function(){
+    Animal.prototype.say=function(){//prototype增加一个say方法
         console.log(this.name+' '+this.age);
     }
-    //使用的时候就使用new，然后传值参数即可
     var cat=new Animal('小猫','3');
     cat.say()
 
@@ -1279,5 +1271,5 @@ $ node es5-2.js
         // 父类的名字 10
         // 这是子类的名字子猫5
     ```
-## 设置webStorm终端从cmd.exe为git bash
+## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
