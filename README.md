@@ -1119,3 +1119,165 @@ export class BackGround extends Sprite{
 
     }
 ```
+## JS面向对象深层填坑
+### ES5的类，通过this增加一个say方法
+* 在test中创建一个es5.js的测试代码，通过this给增加一个say方法代码如下
+```js
+(function(){
+    'use strict';
+    //函数声明,它是google和老师不推荐的写法，它会把function的作用域提升到所有的变量之前。也就是当JS文件一加载就会初始化这个function,而不管你写在什么位置。这样的话，如果我们需要用条件去判断一个function是否创造，或者给function赋值不同的执行体的时候。就不行了。
+    // function Animal(){}这种就是函数声明
+    //下面的就是函数表达式
+    var Animal=function(name,age){
+        this.name=name;
+        this.age=age;
+        this.say=function(){
+            console.log(this.name+' '+this.age);
+        }
+    };
+    //使用的时候就使用new，然后传值参数即可
+    var cat=new Animal('小猫','3');
+    cat.say()
+
+})();
+```
+* **这时候我们没有DOM操作，所以可以直接在终端里面测试结果就好了**
+* 然后在webStorm终端或者github终端找到对应的目录文件，也就是test目录的es5.js文件,输入`node es5.js`就可以看到下面的**小猫 3**结果啦。
+```js
+bomber@DESKTOP-2MJTGBE MINGW32 /d/muke/mini game/flappy bird for github/test (master)
+$ node es5.js
+小猫 3
+```
+### ES5的类，通过原型链，比如prototype增加一个say方法
+* 在test中创建一个es5-2.js的测试代码，通过原型链，比如prototype增加一个say方法
+```js
+(function(){
+    'use strict';
+    //函数声明,它是google和老师不推荐的写法，它会把function的作用域提升到所有的变量之前。也就是当JS文件一加载就会初始化这个function,而不管你写在什么位置。这样的话，如果我们需要用条件去判断一个function是否创造，或者给function赋值不同的执行体的时候。就不行了。
+    // function Animal(){}这种就是函数声明
+    //下面的就是函数表达式
+    var Animal=function(name,age){
+        this.name=name;
+        this.age=age;
+    };
+    Animal.prototype.say=function(){
+        console.log(this.name+' '+this.age);
+    }
+    //使用的时候就使用new，然后传值参数即可
+    var cat=new Animal('小猫','3');
+    cat.say()
+
+})();
+```
+* 继续使用node打出结果
+```js
+bomber@DESKTOP-2MJTGBE MINGW32 /d/muke/mini game/flappy bird for github/test (master)
+$ node es5-2.js
+小猫 3
+
+```
+* **我们可以看到ES5中的类就是一个构造方法（这里就是function自己）**。
+### ES5实现继承
+* 在test中创建一个es5-3.js的测试代码
+* 国际公认，比较靠谱的继承方式叫做**寄生组合继承**。
+* 用到call或apply
+* call() apply(),调用一个对象的一个方法，用另一个对象替换当前对象.
+```js
+    //call() apply()
+    //调用一个对象的一个方法，用另一个对象替换当前对象，
+    //我的理解就是替换了this。
+    Animal.prototype.say.call(cat)
+    var params={
+        name:'第二只猫',
+        age:4
+    }
+    cat.say.call(params)
+    //打出第二只猫 4
+    //其实这里就是把this替换为了params，所以前面那句话也可以说调用一个对象的一个方法，用另一个this替换当前this.
+```
+* 还用到[Object.Create()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/create),该方法创建一个新对象，使用现有的对象来提供新创建的对象的__proto__(新创建对象的原型对象)
+* [Object.create() 和 new Object()](https://www.jianshu.com/p/358d04e054b2)
+    * 总结区别
+      * Object.create() 必须接收一个对象参数，创建的新对象的原型指向接收的参数对象，new Object() 创建的新对象的原型指向的是 Object.prototype. （表述有点啰嗦，简洁点说就是前者继承指定对象， 后者继承内置对象Object）
+      * 可以通过Object.create(null) 创建一个干净的对象，也就是没有原型，而 new Object() 创建的对象是 Object的实例，原型永远指向Object.prototype.
+* 直接赋值和做一个浅克隆再赋值（浅克隆赋值比较合理）
+    * 做一个浅克隆再赋值（浅克隆赋值比较合理）
+        ```js
+        Cat.prototype=Object.create(Animal.prototype)//
+        ```
+    * 这个是直接赋值，上面的是把Animal的原型对象做一个浅克隆在赋值过去
+        ```js
+        Cat.prototype=new Animal();
+        ```
+* 这里父类的代码如下
+```js
+    var Animal=function(name,age){
+        this.name=name;
+        this.age=age;
+    };
+    Animal.prototype.say=function(){
+        console.log(this.name+' '+this.age);
+    }
+    //使用的时候就使用new，然后传值参数即可
+    var cat=new Animal('小猫','3');
+    cat.say()
+```
+* 然后子类继承如下
+```js
+    //寄生组合继承
+    var Cat=function(name,age){
+        //首先调用一下父类的方法
+        Animal.apply(this,arguments)//这里的this就是Cat，这里的arguments就是name,age参数的全局对象，代表一个数组，相当于Animal.apply(this,[name,age]),跟下面的call很像，不过call的参数不是数组，而apply的参数是一个数组
+        // Animal.call(this,name,age)
+    }
+
+    //然后把Animal的原型对象赋值给Cat的原型。
+    Cat.prototype=Object.create(Animal.prototype)//做一个浅克隆再赋值
+    //区分
+    // Cat.prototype=new Animal();//这个是直接赋值，上面的是把Animal的原型对象做一个浅克隆在赋值过去
+
+    //下面这句代码因为和父类一样所以会覆盖掉父类的方法，如果没有这个代码，就会使用父类的say方法。
+    // Cat.prototype.say=function(){
+    //     console.log('这是子类的名字'+this.name+this.age);
+    // }
+
+    //下面的代码是既调用父类的say,也调用子类的say，并且把调用父类的参数替换成了我们想要的参数
+    Cat.prototype.say=function(){
+        var p={
+            name:'父类的名字',
+            age:10
+        };
+        Animal.prototype.say.apply(p)
+        console.log('这是子类的名字'+this.name+this.age);
+    }
+
+    var cat1=new Cat('子猫',5);
+    cat1.say();
+```
+* 把上面代码稍微分解一下：
+    * **单独调用子类的say**，下面这句代码因为和父类一样所以会覆盖掉父类的方法，如果没有这个代码，就会使用父类的say方法。
+    ```js
+        //下面这句代码因为和父类一样所以会覆盖掉父类的方法，如果没有这个代码，就会使用父类的say方法。
+        Cat.prototype.say=function(){
+            console.log('这是子类的名字'+this.name+this.age);
+        }
+        // 会打出
+        // 这是子类的名字子猫5
+    ```
+    * 下面的代码是**既调用父类的say,也调用子类的say，并且把调用父类的参数替换成了我们想要的参数**
+    ```js
+        //下面的代码是既调用父类的say,也调用子类的say，并且把调用父类的参数替换成了我们想要的参数
+        Cat.prototype.say=function(){
+            var p={
+                name:'父类的名字',
+                age:10
+            };
+            Animal.prototype.say.apply(p)
+            console.log('这是子类的名字'+this.name+this.age);
+        }
+        // 会打出
+        // 父类的名字 10
+        // 这是子类的名字子猫5
+    ```
+## 设置webStorm终端从cmd.exe为git bash
+* 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
