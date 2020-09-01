@@ -1119,7 +1119,7 @@ export class BackGround extends Sprite{
 
     }
 ```
-## JS面向对象深层填坑
+## JS面向对象深层填坑——ES5
 ### ES5的类，通过this增加一个say方法
 * 在test中创建一个es5.js的测试代码，通过this给增加一个say方法代码如下
 ```js
@@ -1271,5 +1271,100 @@ $ node es5-2.js
         // 父类的名字 10
         // 这是子类的名字子猫5
     ```
+## JS面向对象深层填坑ES6
+### 用extends和super关键字
+* **ES6的继承必须要在constructor里面调用super**，这是因为子类自己的this对象，必须先通过父类的构造函数完成塑造，得到与父类同样的实例属性和方法，然后再对其进行加工，加上子类自己的实例属性和方法。如果不调用super方法，子类就得不到this对象。具体可以看[阮一峰的ES6教程关于继承](https://es6.ruanyifeng.com/#docs/class-extends)
+* 具体代码如下
+```js
+class Animal{
+
+    constructor(name='无姓名',age=0){
+        this.name=name;
+        this.age=age;
+    }
+
+    say(){//这个很像ES5的Animal.prototype.say
+        console.log(this.name,this.age);
+    }
+}
+
+
+class Cat extends Animal{
+    constructor(name,age){
+        super(name,age)//ES6的继承必须要在constructor里面调用super，这是因为子类自己的this对象，必须先通过父类的构造函数完成塑造，得到与父类同样的实例属性和方法，然后再对其进行加工，加上子类自己的实例属性和方法。如果不调用super方法，子类就得不到this对象。具体可以看阮一峰的教程https://es6.ruanyifeng.com/#docs/class-extends
+    }
+}
+
+const cat=new Cat('小猫哈哈',2)//这里就可以打出小猫哈哈 2
+cat.say()
+```
+* 如果想要覆盖掉父类的say方法，直接在子类里面写一个同名的say就可以覆盖掉父类的say方法啦。
+```js
+class Animal{
+
+    constructor(name='无姓名',age=0){
+        this.name=name;
+        this.age=age;
+    }
+
+    say(){//这个很像ES5的Animal.prototype.say
+        console.log(this.name,this.age);
+    }
+}
+
+
+class Cat extends Animal{
+    constructor(name,age){
+        super(name,age)
+    }
+
+    say(){
+        console.log('这是子类的say')//增加一个say可以覆盖掉父类的say
+    }
+}
+
+const cat=new Cat('小猫哈哈',2)
+cat.say()
+```
+* 既有父类的say，同时有子类的say。就要用到super调用父类的say即可
+```js
+class Animal{
+
+    constructor(name='无姓名',age=0){
+        this.name=name;
+        this.age=age;
+    }
+
+    say(){//这个很像ES5的Animal.prototype.say
+        console.log(this.name,this.age);
+    }
+}
+
+
+class Cat extends Animal{
+    constructor(name,age){
+        super(name,age)
+    }
+
+
+    say(){
+        super.say()//用super调用父类的say
+        console.log('这是子类的say')
+    }
+}
+
+const cat=new Cat('小猫哈哈',2)
+cat.say()
+```
+* 这样就可以同时打出父类和子类的say啦。
+```sh
+$ node es6.js
+小猫哈哈 2
+这是子类的say
+```
+### ES6写完转义成ES5
+* 一般ES6可以用babel转义成ES5，ES5几乎是ES的最佳实践。转义后的ES5是考虑了最佳性能和最佳执行的这样的转义过程。，所以不用担心babel的转义会对性能造成影响。
 ## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
+## 路径名或者变量中间有空格时，可以用双引号括起来
+* [Git: bash: cd: too many arguments](https://blog.csdn.net/shruber/article/details/78269071),路径名或者变量中间有空格时，可以用双引号括起来，不然会报错：bash: cd: too many arguments
