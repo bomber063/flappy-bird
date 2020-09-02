@@ -26,7 +26,9 @@ export class Director{
         this.dataStore.get('background').draw();
         this.dataStore.get('land').draw();
         let timer=requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
-        this.dataStore.put('timer',timer)
+        // let timer=setTimeout(()=>this.run(),0)//用箭头函数的时候this是外面的this
+        // let timer=setInterval(()=>this.run(),0)//用箭头函数的时候this是外面的this
         // cancelAnimationFrame(this.dataStore.get('timer'))
+        this.dataStore.put('timer',timer)
     }
 }

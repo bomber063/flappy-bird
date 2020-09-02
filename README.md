@@ -1434,7 +1434,7 @@ export class Land extends Sprite{
         requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
     }
 ```
-* 但是此时地板会无限延伸到左边。这样就穿帮了。增加一个判断，判断如果移动的像素超过图片和window的宽度的差值，就重置为0，这样就可以无限循环左移了。
+* 但是此时地板会无限延伸到左边。这样就穿帮了。增加一个判断，判断如果移动的像素超过图片和window的宽度的差值，就重置为0，这样就可以无限循环左移了。这里我增加绝对值[Math.abs()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/abs)，是因为手机宽度和电脑宽度导致结果有负数
 ```js
     draw(){
         this.landX=this.landX+this.landSpeed//每次变化this.landSpeed像素的坐标
@@ -1464,6 +1464,17 @@ export class Land extends Sprite{
         // cancelAnimationFrame(this.dataStore.get('timer')) 写在旁边注释
     }
 ```
+## 小游戏渲染原理填坑（刷新率）
+* 浏览器会有刷新率的变化。每一帧都会去变换它的像素上面的颜色，位置等等，不仅仅是地板在刷新，整个canvas包括背景图片都在随着地板的每一次移动的刷新，也在不断的刷新。整个canvas就只有一个元素，也就是整个canvas的图像。只是肉眼看不出来。**也就是说canvas中哪怕有一个地方有微小变化整张图都会重绘**
+* 我们可以用setTimeout和setInterval来实现requestAnimationFrame的效果。
+```js
+        let timer=setTimeout(()=>this.run(),0)
+        let timer=setInterval(()=>this.run(),0)
+```
+* requestAnimationFrame优点如下:
+    1. requestAnimationFrame一般是用于动画，它的刷新率是由浏览器决定的。在每一次浏览器的帧率刷新之前执行。它的刷新速率不是由我们控制的。
+    2. requestAnimationFrame的性能是远远高于setTimeout和setInterval的。
+* 所以动画开发，包括游戏和canvas的处理都用requestAnimationFrame，不要使用setTimeout和setInterval去做这种类似的循环操作。很不靠谱。
 ## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
 ## 路径名或者变量中间有空格时，可以用双引号括起来
