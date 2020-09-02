@@ -420,9 +420,9 @@ items.forEach(
 );
 ```
 * [Map.prototype.set(key, value)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Map/set)设置Map对象中键的值。返回该Map对象。
-### 数组里面有数组，并且foreach的参数如果是数组
+### 数组里面有数组，并且foreach的参数也是数组
 * 具体代码可以看[Jsbin](https://jsbin.com/yotijiwipi/1/edit?js,output)
-* 这里第三个1数数字，第四个1是字符串1，可以看jsbin里面的输出结果。也就是value的值是跟items里面的对应的数组的索引为0的值是一致的。 
+* 这里第三个1是数字1，第四个1是字符串1，可以看jsbin里面的输出结果。也就是value的值是跟items里面的对应的数组的索引为0的值是一致的。 
 ```js
 //这里第三个数组的第一个索引是数字1，第四个数组的第一个索引是字符串1
 const items = [
@@ -437,7 +437,7 @@ const map = new Map();
 items.forEach(
   ([value,value1],key) => console.log(key,value,value1)
 );
-//这里第三个1数数字，第四个1是字符串1，可以看jsbin里面的输出结果。也就是value的值是跟items里面的对应的数组的索引为0的值是一致的。 
+//这里第三个1是数字1，第四个1是字符串1，可以看jsbin里面的输出结果。也就是value的值是跟items里面的对应的数组的索引为0的值是一致的。 
 
 items.forEach(
   ([value,key]) => console.log(key,value)
@@ -1364,6 +1364,106 @@ $ node es6.js
 ```
 ### ES6写完转义成ES5
 * 一般ES6可以用babel转义成ES5，ES5几乎是ES的最佳实践。转义后的ES5是考虑了最佳性能和最佳执行的这样的转义过程。，所以不用担心babel的转义会对性能造成影响。
+## canvas运动渲染不断移动的地板
+* 首先在Main.js里面注册lang图片。
+```js
+import {Land} from "./js/runtime/Land.js";
+...
+    init(){
+        this.dataStore
+            .put('background',BackGround)
+            .put('land',Land);//注册land图片
+        Director.getInstance().run();
+
+    }
+```
+* 然后director.js里面调用`this.dataStore.get('land').draw()`方法
+```js
+    run(){
+        //因为在Main.js中已经通过init函数里面的this.dataStore.put('background',new BackGround()),把background图片设置了，那么就可以使用get('background')方法获取到
+        // const backgroundSprite=this.dataStore.get('background');
+        // backgroundSprite.draw();
+        this.dataStore.get('background').draw();
+        this.dataStore.get('land').draw();
+    }
+}
+```
+* 然后把land增加上就好了，增加到Land.js里面
+* 这里使用了class的[继承](https://developer.mozilla.org/zh-CN/docs/Learn/JavaScript/Objects/Inheritance)，用到关键字[extends](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Classes/extends)和[super](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/super).
+```js
+//不断移动的陆地
+import {Sprite} from "../base/Sprite.js";
+
+export class Land extends Sprite{
+    constructor() {
+        const image = Sprite.getImage('land')
+        super(image,
+            0,0,
+            image.width,image.height,
+            0,window.innerHeight-image.height,
+            image.width,image.height
+            );
+        this.landX=0;//地板水平变化坐标
+        this.landSpeed=2;//地板的移动速度
+    }
+
+    draw(){
+        this.landX=this.landX+this.landSpeed//每次变化this.landSpeed像素的坐标
+        super.draw(
+            this.image,
+            this.srcX,
+            this.srcY,
+            this.srcW,
+            this.srcH,
+            -this.landX,//负数就可以往左移动
+            this.y,
+            this.width,
+            this.height
+        )
+    }
+}
+```
+### 让地板动起来
+* 涉及到JS的一个全局的方法——[window.requestAnimationFrame](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/requestAnimationFrame),当你准备更新动画时你应该调用此方法。这将使浏览器在下一次重绘之前调用你传入给该方法的动画函数(即你的回调函数)。回调函数执行次数**通常是每秒60次，但在大多数遵循W3C建议的浏览器中，回调函数执行次数通常与浏览器屏幕刷新次数相匹配**。
+* window.requestAnimationFrame与setTimeout相比较，**requestAnimationFrame会根据浏览器的帧率进行动态调整，也就是说它能保证有足够的性能**。一般动画制作都会用到这个方法。
+* 在Director.js中的run方法中增加这个方法即可动起来啦
+```js
+    run(){
+        this.dataStore.get('background').draw();
+        this.dataStore.get('land').draw();
+        requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
+    }
+```
+* 但是此时地板会无限延伸到左边。这样就穿帮了。增加一个判断，判断如果移动的像素超过图片和window的宽度的差值，就重置为0，这样就可以无限循环左移了。
+```js
+    draw(){
+        this.landX=this.landX+this.landSpeed//每次变化this.landSpeed像素的坐标
+        if(this.landX>Math.abs(this.srcW-window.innerWidth)){//增加一个判断，判断如果移动的像素超过图片和window的宽度的差值，就重置为0，这样就可以无限循环左移了。这里我增加绝对值，是因为手机宽度和电脑宽度导致结果有负数
+            this.landX=0
+        }
+        super.draw(
+            this.image,
+            this.srcX,
+            this.srcY,
+            this.srcW,
+            this.srcH,
+            -this.landX,//负数就可以往左移动
+            this.y,
+            this.width,
+            this.height
+        )
+    }
+```
+* 结束游戏的时候可以终止这个循环左移。这里用到一个方法——[window.cancelAnimationFrame](https://developer.mozilla.org/zh-CN/docs/Web/API/Window/cancelAnimationFrame),不过目前还暂时用不了，先写在旁边注释着
+```js
+    run(){
+        this.dataStore.get('background').draw();
+        this.dataStore.get('land').draw();
+        let timer=requestAnimationFrame(()=>this.run())
+        this.dataStore.put('timer',timer)
+        // cancelAnimationFrame(this.dataStore.get('timer')) 写在旁边注释
+    }
+```
 ## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
 ## 路径名或者变量中间有空格时，可以用双引号括起来

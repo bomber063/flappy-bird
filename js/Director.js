@@ -21,7 +21,12 @@ export class Director{
 
     run(){
         //因为在Main.js中已经通过init函数里面的this.dataStore.put('background',new BackGround()),把background图片设置了，那么就可以使用get('background')方法获取到
-        const backgroundSprite=this.dataStore.get('background');
-        backgroundSprite.draw();
+        // const backgroundSprite=this.dataStore.get('background');
+        // backgroundSprite.draw();
+        this.dataStore.get('background').draw();
+        this.dataStore.get('land').draw();
+        let timer=requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
+        this.dataStore.put('timer',timer)
+        // cancelAnimationFrame(this.dataStore.get('timer'))
     }
 }

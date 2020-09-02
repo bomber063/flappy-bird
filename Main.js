@@ -3,6 +3,7 @@ import {ResourceLoader} from "./js/base/ResourceLoader.js";
 import {Director} from "./js/Director.js";
 import {BackGround} from "./js/runtime/BackGround.js";
 import {DataStore} from "./js/base/DataStore.js";
+import {Land} from "./js/runtime/Land.js";
 
 export class Main{
     constructor(){
@@ -53,7 +54,8 @@ export class Main{
         this.dataStore
             // .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
             // .put('background',new BackGround());
-            .put('background',BackGround);
+            .put('background',BackGround)
+            .put('land',Land);
         // console.log(typeof BackGround)//这里打出来是function
 
 
