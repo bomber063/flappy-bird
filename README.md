@@ -1611,14 +1611,43 @@ export class DownPencil extends Pencil{
         display: block;
     }
 ```
-* 因为window的宽度比较宽，那么land陆地移动的时候可能会穿帮。那么最好增加一个判断
+* 因为window的宽度比较宽，那么land陆地移动的时候可能会穿帮。那么最好增加一个判断,这个判断是为了在宽度太宽的时候防止穿帮，就是不要移动超过图片本身的3分之一
 ```js
+        if(window.innerWidth<375){
             if(this.landX>Math.abs(this.srcW-window.innerWidth)){
                 this.landX=0
             }
+        }
+        if(window.innerWidth>375){
             if(this.landX>this.srcW/3){//这个判断是为了在宽度太宽的时候防止穿帮，就是不要移动超过图片本身的3分之一
                 this.landX=0
             }
+        }
+```
+* 如果window的宽度比较宽，铅笔出现的时间就会靠后，所以最好减去超过本身设置的375的宽度值,这样铅笔会马上出现。
+```js
+        if(window.innerWidth<375){
+            super.draw(
+                this.img,
+                0,0,
+                this.width,this.height,
+                this.x,//x不断变化，所以铅笔会向左不断移动
+                this.y,
+                this.width,this.height
+            )
+        }
+        else{
+            if(window.innerWidth>375){
+                super.draw(/
+                    this.img,
+                    0,0,
+                    this.width,this.height,
+                    this.x-(window.innerWidth-375),//x不断变化，减去比375宽度出来的部分window.innerWidth-380。铅笔会向左不断移动
+                    this.y,
+                    this.width,this.height//这个跟上面的注释说明一样
+                )
+            }
+        }
 ```
 ### 解决前面的覆盖问题和消失后不再出现的问题
 * 

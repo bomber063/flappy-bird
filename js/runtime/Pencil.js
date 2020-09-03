@@ -16,18 +16,38 @@ export class Pencil extends Sprite{
     }
 
     draw(){
-        // console.log(this.x,this.y)
+        // let w=(window.innerWidth-this.width)/2
+        // console.log(this.x,window.innerWidth,this.width,this.srcW)
+
         this.x=this.x-Director.getInstance().moveSpeed//这里的this.x是上面constructor里面的window.innerWidth，它是根据Sprite.js里面的constructor里面的x而来的。也就是说把window.innerWidth传值给了x，并且this.x=x
-        super.draw(//这里面的参数都可以不写，因为在Sprite.js里面都已经写过，而且是一样的。这里的y的最终值是分别从DownPencil.js和UpPencil.js传过来的
-            this.img,
-            0,0,
-            // this.img.width,this.img.height,
-            this.width,this.height,//因为前面constructor里面的super已经把image.width和image.height通过Sprite.js的this.width = width和this.height = height传值了，所以可以直接写成this.width,this.height;
-            this.x,//x不断变化，所以铅笔会向左不断移动
-            this.y,
-            // this.img.width,this.img.height
-            this.width,this.height//这个跟上面的注释说明一样
-        )
+        // console.log(window.innerWidth)
+        if(window.innerWidth<375){
+            super.draw(//这里面的参数都可以不写，因为在Sprite.js里面都已经写过，而且是一样的。这里的y的最终值是分别从DownPencil.js和UpPencil.js传过来的
+                this.img,
+                0,0,
+                // this.img.width,this.img.height,
+                this.width,this.height,//因为前面constructor里面的super已经把image.width和image.height通过Sprite.js的this.width = width和this.height = height传值了，所以可以直接写成this.width,this.height;
+                this.x,//x不断变化，所以铅笔会向左不断移动
+                this.y,
+                // this.img.width,this.img.height
+                this.width,this.height//这个跟上面的注释说明一样
+            )
+        }
+        else{
+            if(window.innerWidth>375){
+                super.draw(//这里面的参数都可以不写，因为在Sprite.js里面都已经写过，而且是一样的。这里的y的最终值是分别从DownPencil.js和UpPencil.js传过来的
+                    this.img,
+                    0,0,
+                    // this.img.width,this.img.height,
+                    this.width,this.height,//因为前面constructor里面的super已经把image.width和image.height通过Sprite.js的this.width = width和this.height = height传值了，所以可以直接写成this.width,this.height;
+                    this.x-(window.innerWidth-375),//x不断变化，减去比375宽度出来的部分window.innerWidth-380。铅笔会向左不断移动
+                    this.y,
+                    // this.img.width,this.img.height
+                    this.width,this.height//这个跟上面的注释说明一样
+                )
+            }
+        }
+
     }
 
 }
