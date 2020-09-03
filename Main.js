@@ -4,6 +4,8 @@ import {Director} from "./js/Director.js";
 import {BackGround} from "./js/runtime/BackGround.js";
 import {DataStore} from "./js/base/DataStore.js";
 import {Land} from "./js/runtime/Land.js";
+import {UpPencil} from "./js/runtime/UpPencil.js";
+import {DownPencil} from "./js/runtime/DownPencil.js";
 
 export class Main{
     constructor(){
@@ -11,6 +13,7 @@ export class Main{
         this.canvas=document.getElementById('game_canvas')
         this.ctx=this.canvas.getContext('2d');
         this.dataStore=DataStore.getInstance();
+        this.director=Director.getInstance();
         const loader=ResourceLoader.create();
         //把map传参到onResourceFirstLoaded函数里面去
         // console.log(loader)
@@ -54,15 +57,18 @@ export class Main{
         this.dataStore
             // .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
             // .put('background',new BackGround());
+            .put('pencils',[])//上下两个铅笔以数组的数据类型的形式存储，我们每一个铅笔就是存储在dataStore的pencils为key的这样的一个数组里面。每次渲染的时候会按照次序以此渲染上下两个铅笔，因为上下两个铅笔的x坐标是一样的。给用户的感觉这两个铅笔是同时创造出来的，其实并不是，如果严格的以机器的思维去思考，这两个铅笔中间是有一定的额时间差，他们是以不同的时间创建的。
             .put('background',BackGround)
-            .put('land',Land);
+            .put('land',Land)
         // console.log(typeof BackGround)//这里打出来是function
 
 
         // let background=new BackGround(this.ctx,map.get('background'));
         //创建图片，然后下面background.draw()就是直接在浏览器上显示图片
         // this.dataStore.res.background.draw();这句话代码通过导演类Director里面的方法来执行
-        Director.getInstance().run();
+        //创建铅笔要在游戏逻辑运行之前
+        this.director.createPencil();
+        this.director.run();
         //上面的代码就是使用dataStore的get方法去获取图片实例。
         //        const backgroundSprite=this.dataStore.get('background');
         //         backgroundSprite.draw();

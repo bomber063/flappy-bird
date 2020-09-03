@@ -1474,7 +1474,154 @@ export class Land extends Sprite{
 * requestAnimationFrame优点如下:
     1. requestAnimationFrame一般是用于动画，它的刷新率是由浏览器决定的。在每一次浏览器的帧率刷新之前执行。它的刷新速率不是由我们控制的。
     2. requestAnimationFrame的性能是远远高于setTimeout和setInterval的。
-* 所以动画开发，包括游戏和canvas的处理都用requestAnimationFrame，不要使用setTimeout和setInterval去做这种类似的循环操作。很不靠谱。
+* 一般肉眼能看到的是60帧，所以动画开发，包括游戏和canvas的处理都用requestAnimationFrame，不要使用setTimeout和setInterval去做这种类似的循环操作。很不靠谱。
+## 小游戏上下铅笔管道创建(顺便做了window的兼容)
+* 随着游戏的进行，铅笔会不断的从右边创建，然后进入左边销毁。同时上下铅笔的高度会随机变化。并且出现在游戏界面的最多两组（四根）铅笔。
+* ES6的面向对象或者是ES5的起名字有两种
+    1. 比如Pencil.js
+    2. pencil.class.js
+### 创建一个基类用于实现上下铅笔的共有方法
+* 新建一个类名字叫Pencil.js
+* 这里的top就是铅笔距离顶部的距离，也可以定义bottom就是距离底部的距离，这里的top最终是由Director.js的createPencil里面传过来的。
+* 这里的this.x是上面constructor里面的window.innerWidth，它是根据Sprite.js里面的constructor里面的x而来的。也就是说把window.innerWidth传值给了x，并且this.x=x
+* 因为前面constructor里面的super已经把image.width和image.height通过Sprite.js的this.width = width和this.height = height传值了，所以可以直接写成this.width,this.height;而不用写成this.img.width和this.img.height。
+* 更简单的方式，super.draw()，这里面的参数可以不写，因为在Sprite.js里面都已经写过，而且是一样的。这里的y的最终值是分别从DownPencil.js和UpPencil.js传过来的
+* 
+```js
+/*铅笔基类*/
+
+import {Sprite} from "../base/Sprite.js";
+import {Director} from "../Director.js";
+
+export class Pencil extends Sprite{
+    constructor(image,top) {//top就是铅笔距离顶部的距离，也可以定义bottom就是距离底部的距离，这里的top最终是由Director.js的createPencil里面传过来的。
+        super(image,
+            0, 0,
+            image.width, image.height,
+            //刚好放在右侧看不到的位置
+            window.innerWidth, 0,
+            image.width, image.height
+        );
+        this.top=top
+    }
+
+    draw(){
+        // console.log(this.x,this.y)
+        this.x=this.x-Director.getInstance().moveSpeed//这里的this.x是上面constructor里面的window.innerWidth，它是根据Sprite.js里面的constructor里面的x而来的。也就是说把window.innerWidth传值给了x，并且this.x=x
+        super.draw(//这里面的参数都可以不写，因为在Sprite.js里面都已经写过，而且是一样的。这里的y的最终值是分别从DownPencil.js和UpPencil.js传过来的
+            this.img,
+            0,0,
+            // this.img.width,this.img.height,
+            this.width,this.height,//因为前面constructor里面的super已经把image.width和image.height通过Sprite.js的this.width = width和this.height = height传值了，所以可以直接写成this.width,this.height;
+            this.x,//x不断变化，所以铅笔会向左不断移动
+            this.y,
+            // this.img.width,this.img.height
+            this.width,this.height//这个跟上面的注释说明一样。
+        )
+    }
+
+}
+```
+### 创建上铅笔类
+* 创建UpPencil.js.
+* 这里的top是由Director.js的createPencil里面传过来的。
+```js
+//上半部分铅笔
+import {Pencil} from "./Pencil.js";
+import {Sprite} from "../base/Sprite.js";
+
+export class UpPencil extends Pencil{
+    constructor(top){//这里的top是由Director.js的createPencil里面传过来的。
+        const image=Sprite.getImage('pencilUp');
+        super(image,top)
+    }
+    draw() {
+        this.y=this.top-this.height;//如果this.top是0，那么就刚好y方向看不到UpPencil
+        super.draw();
+    }
+}
+```
+### 创建下铅笔类
+* 创建DownPencil.js
+* 这里的top是由Director.js的createPencil里面传过来的。
+* 这里的下铅笔类距离顶部，相对于上铅笔增加了一个gap。为了是让小鸟穿过的。
+```js
+//下半部分铅笔
+import {Pencil} from "./Pencil.js";
+import {Sprite} from "../base/Sprite.js";
+
+export class DownPencil extends Pencil{
+    constructor(top){//这里的top是由Director.js的createPencil里面传过来的。
+        const image=Sprite.getImage('pencilDown');
+        super(image,top);
+    }
+    draw() {
+        let gap=window.innerHeight/5;//上下两根铅笔有一个固定的间隙
+        this.y=this.top+gap//下铅笔的距离顶部的高度加上一个间隙就是当前左上角y的位置
+        super.draw();
+    }
+}
+```
+### director类增加createPencil方法，并补充Main.js中设置存入pencils
+* * 小鸟不可能突然窜到底部或者顶部，这明显不合理，**那么就需要把这个间隙设置在一个合适的位置**，把屏幕高度的八分之一和屏幕高度的二分之一分别作为最低高度和最高高度。
+* 根据最佳实践，把top设置为最小top也就是8分之一的window的高度加上一个最大和最小值的差值的随机数。
+* 根据Main.js中存入pencils，在Director.js中以数组的形式通过get方法**获取pencils**。通过forEach来draw()
+* 这里把top传参传入上下铅笔类使用。
+```js
+    createPencil(){
+        const minTop=window.innerHeight/8;
+        const maxTop=window.innerHeight/2;
+        const top=minTop + Math.random()*(maxTop-minTop);//这里的Math.random方法得到的随机数仅仅知识软件层次的随机数，是一个假的随机数，真正的随机数是根据硬件运转的频率，或者外界的声音，乃至于屏摄的频率来运算出来的才是真正的随机数。
+        this.dataStore.get('pencils').push(new UpPencil(top))//get是获取到pencils对应的空数组。然后往里面push数据。UpPencil这个类唯一需要传的参数就是top
+        this.dataStore.get('pencils').push(new DownPencil(top))//get是获取到pencils对应的空数组。然后往里面push数据。DownPencil这个类唯一需要传的参数就是top
+    }
+        run(){
+            this.dataStore.get('background').draw();
+            this.dataStore.get('land').draw();
+            this.dataStore.get('pencils').forEach(function(value){
+                value.draw()
+            });
+            let timer=requestAnimationFrame(()=>this.run())
+            this.dataStore.put('timer',timer)
+        }
+```
+* Main.js中**存入pencils**，刚开始是一个空数组,并在run方法之前要createPencil()，这是因为创建铅笔要在游戏逻辑运行之前。
+```js
+    init(){
+        //image图片对象信息通过下面的put传进来
+        this.dataStore
+            .put('pencils',[])//上下两个铅笔以数组的数据类型的形式存储，我们每一个铅笔就是存储在dataStore的pencils为key的这样的一个数组里面。每次渲染的时候会按照次序以此渲染上下两个铅笔，因为上下两个铅笔的x坐标是一样的。给用户的感觉这两个铅笔是同时创造出来的，其实并不是，如果严格的以机器的思维去思考，这两个铅笔中间是有一定的额时间差，他们是以不同的时间创建的。
+            .put('background',BackGround)
+            .put('land',Land)
+
+        //创建铅笔要在游戏逻辑运行之前
+        this.director.createPencil();
+        this.director.run();
+        //上面的代码就是使用dataStore的get方法去获取图片实例。
+        //        const backgroundSprite=this.dataStore.get('background');
+        //         backgroundSprite.draw();
+    }
+```
+* 还存问题就是铅笔把陆地覆盖了，我们需要的是陆地把铅笔覆盖，另外铅笔从右边创建后到左边消失就再也没有了。
+### 兼容window
+* 因为window的宽度比较宽，所以最好居中处理
+```css
+    canvas{
+        margin:0 auto;
+        display: block;
+    }
+```
+* 因为window的宽度比较宽，那么land陆地移动的时候可能会穿帮。那么最好增加一个判断
+```js
+            if(this.landX>Math.abs(this.srcW-window.innerWidth)){
+                this.landX=0
+            }
+            if(this.landX>this.srcW/3){//这个判断是为了在宽度太宽的时候防止穿帮，就是不要移动超过图片本身的3分之一
+                this.landX=0
+            }
+```
+### 解决前面的覆盖问题和消失后不再出现的问题
+* 
 ## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
 ## 路径名或者变量中间有空格时，可以用双引号括起来
