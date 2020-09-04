@@ -35,12 +35,52 @@ export class Director{
         // const backgroundSprite=this.dataStore.get('background');
         // backgroundSprite.draw();
         this.dataStore.get('background').draw();
-        this.dataStore.get('land').draw();
-        // this.dataStore.get('pencilUp').draw();
-        // this.dataStore.get('pencilDown').draw();
+        const pencils=this.dataStore.get('pencils')
+        if(window.innerWidth<375){
+            if(pencils[0].x+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+                pencils.splice(0,1)
+                pencils.splice(0,1)//这里用下面的shift也是一样的效果
+                // pencils.shift()
+                // pencils.shift()
+                // this.createPencil()//这个会不断创建一大堆铅笔。
+            }
+            if(pencils[0].x<=(window.innerWidth-pencils[0].x)/2&&pencils.length===2){
+                this.createPencil()
+            }
+
+            // if(pencils[0].x<=(window.innerWidth-pencils[0].x)/2&&pencils.length===4){
+            //     this.createPencil()
+            // }
+        }
+
+        if(window.innerWidth>375){
+            if(pencils[0].x-(window.innerWidth-375)+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+                pencils.splice(0,1)
+                pencils.splice(0,1)//这里用下面的shift也是一样的效果
+                // pencils.shift()
+                // pencils.shift()
+                // this.createPencil()//这个会不断创建一大堆铅笔。
+            }
+            console.log(pencils[0].x)
+            if(pencils[0].x-(window.innerWidth-375)<=(window.innerWidth-(pencils[0].x-(window.innerWidth-375)))/8&&pencils.length===2){
+                this.createPencil()
+            }
+
+            // if(pencils[0].x<=(window.innerWidth-pencils[0].x)/2&&pencils.length===4){
+            //     this.createPencil()
+            // }
+        }
+
+
+
+
         this.dataStore.get('pencils').forEach(function(value){
             value.draw()
         });
+        this.dataStore.get('land').draw();
+        // this.dataStore.get('pencilUp').draw();
+        // this.dataStore.get('pencilDown').draw();
+
         let timer=requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
         // let timer=setTimeout(()=>this.run(),1000)//用箭头函数的时候this是外面的this
         // let timer=setInterval(()=>this.run(),0)//用箭头函数的时候this是外面的this

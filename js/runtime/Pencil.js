@@ -21,6 +21,9 @@ export class Pencil extends Sprite{
 
         this.x=this.x-Director.getInstance().moveSpeed//这里的this.x是上面constructor里面的window.innerWidth，它是根据Sprite.js里面的constructor里面的x而来的。也就是说把window.innerWidth传值给了x，并且this.x=x
         // console.log(window.innerWidth)
+        // if(this.x===-this.width){
+        //     this.x=window.innerWidth
+        // }
         if(window.innerWidth<375){
             super.draw(//这里面的参数都可以不写，因为在Sprite.js里面都已经写过，而且是一样的。这里的y的最终值是分别从DownPencil.js和UpPencil.js传过来的
                 this.img,

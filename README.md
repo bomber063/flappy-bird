@@ -1611,7 +1611,7 @@ export class DownPencil extends Pencil{
         display: block;
     }
 ```
-* 因为window的宽度比较宽，那么land陆地移动的时候可能会穿帮。那么最好增加一个判断,这个判断是为了在宽度太宽的时候防止穿帮，就是不要移动超过图片本身的3分之一
+* 因为window的宽度比较宽，那么land陆地移动的时候可能会穿帮。那么最好增加一个判断,这个判断是为了在宽度太宽的时候防止穿帮，就是不要移动超过图片本身的3分之一，Land.js代码
 ```js
         if(window.innerWidth<375){
             if(this.landX>Math.abs(this.srcW-window.innerWidth)){
@@ -1624,7 +1624,7 @@ export class DownPencil extends Pencil{
             }
         }
 ```
-* 如果window的宽度比较宽，铅笔出现的时间就会靠后，所以最好减去超过本身设置的375的宽度值,这样铅笔会马上出现。
+* 如果window的宽度比较宽，铅笔出现的时间就会靠后，所以最好减去超过本身设置的375的宽度值,这样铅笔会马上出现。Pencil.js代码
 ```js
         if(window.innerWidth<375){
             super.draw(
@@ -1638,7 +1638,7 @@ export class DownPencil extends Pencil{
         }
         else{
             if(window.innerWidth>375){
-                super.draw(/
+                super.draw(
                     this.img,
                     0,0,
                     this.width,this.height,
@@ -1649,8 +1649,130 @@ export class DownPencil extends Pencil{
             }
         }
 ```
-### 解决前面的覆盖问题和消失后不再出现的问题
-* 
+### 解决铅笔和地板的覆盖问题
+* 铅笔覆盖了陆地，**因为canvas绘制图层是一个个的去覆盖的，我们每创建一个元素，它会覆盖掉之前的一个元素，并且在之上进行绘制。这就是铅笔出现在地板之上的原因**。只需要修改地板和铅笔的代码顺序即可。在Director.js里面修改顺序，把铅笔pencils放到land地板之前就实现了。
+```js
+    run(){
+        this.dataStore.get('background').draw();
+        this.dataStore.get('pencils').forEach(function(value){
+            value.draw()
+        });//把铅笔pencils放到land地板之前就实现了。
+        this.dataStore.get('land').draw();
+
+        let timer=requestAnimationFrame(()=>this.run())
+        this.dataStore.put('timer',timer)
+    }
+```
+### 消失后不再出现的问题，保证两组（四只）铅笔出现，这个我自己没有想到怎么实现,只考虑到一半
+* 消失后不再出现，需要做一些额外的判断。
+* 保证两组（四只）铅笔同时如何在代码中实现呢。
+* **我是在Pencil.js里面通过使用x来实现，但是并不能完全实现，应该在Director.js里面通过调用Pencils这个类的x属性来实现**。但是我之前是这样写的，**会导致产生大量的铅笔**
+```js
+    run(){
+        this.dataStore.get('background').draw();
+        const pencils=this.dataStore.get('pencils')
+        if(pencils[0].x+pencils[0].width<=0){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+            // pencils.slice(0,1)
+            // pencils.slice(1,1)
+            pencils.shift()
+            pencils.shift()
+            this.createPencil()//这个会不断创建一大堆铅笔。
+        }
+        this.dataStore.get('pencils').forEach(function(value){
+            value.draw()
+        });
+        this.dataStore.get('land').draw();
+        let timer=requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
+        this.dataStore.put('timer',timer)
+    }
+```
+* **因为我并没有判断数组里面出现的铅笔个数**，如果判断了个数就不会出现大量的铅笔了，可以设置为6个。
+* 因为一次是创建2只铅笔，那么增加的时候就需要在2和4只的时候增加，删除的时候就在最大数量6个的时候删除。
+```js
+    run(){
+        this.dataStore.get('background').draw();
+        const pencils=this.dataStore.get('pencils')
+        if(pencils[0].x+pencils[0].width<=0&&pencils.length===6){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+            pencils.splice(0,1)
+            pencils.splice(0,1)//这里用下面的shift也是一样的效果
+            // pencils.shift()
+            // pencils.shift()
+            // this.createPencil()//这个会不断创建一大堆铅笔。
+        }
+        if(pencils[0].x<=(window.innerWidth-pencils[0].x)*2&&pencils.length===2){
+            this.createPencil()
+        }
+
+        if(pencils[0].x<=(window.innerWidth-pencils[0].x)/2&&pencils.length===4){
+            this.createPencil()
+        }
+
+
+        this.dataStore.get('pencils').forEach(function(value){
+            value.draw()
+        });
+        this.dataStore.get('land').draw();
+
+        let timer=requestAnimationFrame(()=>this.run())
+
+        this.dataStore.put('timer',timer)
+    }
+```
+* 还可以设置为4个，那么增加的时候就在2只铅笔的时候，删除的时候就在4只铅笔的时候
+```js
+    run(){
+        this.dataStore.get('background').draw();
+        const pencils=this.dataStore.get('pencils')
+        if(pencils[0].x+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+            pencils.splice(0,1)
+            pencils.splice(0,1)//这里用下面的shift也是一样的效果
+            // pencils.shift()
+            // pencils.shift()
+            // this.createPencil()//这个会不断创建一大堆铅笔。
+        }
+        if(pencils[0].x<=(window.innerWidth-pencils[0].x)/2&&pencils.length===2){
+            this.createPencil()
+        }
+
+        this.dataStore.get('pencils').forEach(function(value){
+            value.draw()
+        });
+        this.dataStore.get('land').draw();
+
+        let timer=requestAnimationFrame(()=>this.run())
+        this.dataStore.put('timer',timer)
+    }
+```
+* 另外这里可以使用[splice](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/splice)或者[shift](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/shift)删除数组的第一个元素。的pencils.splice(0,1)和pencils.shift()效果一样。
+* 兼容window宽度超过375的时候需要多做一些判断
+```js
+        if(window.innerWidth<375){
+            if(pencils[0].x+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+                pencils.splice(0,1)
+                pencils.splice(0,1)//这里用下面的shift也是一样的效果
+                // pencils.shift()
+                // pencils.shift()
+                // this.createPencil()//这个会不断创建一大堆铅笔。
+            }
+            if(pencils[0].x<=(window.innerWidth-pencils[0].x)/2&&pencils.length===2){
+                this.createPencil()
+            }
+        }
+
+        if(window.innerWidth>375){//大于375的时候判断
+            if(pencils[0].x-(window.innerWidth-375)+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+                pencils.splice(0,1)
+                pencils.splice(0,1)//这里用下面的shift也是一样的效果
+                // pencils.shift()
+                // pencils.shift()
+                // this.createPencil()//这个会不断创建一大堆铅笔。
+            }
+            console.log(pencils[0].x)
+            if(pencils[0].x-(window.innerWidth-375)<=(window.innerWidth-(pencils[0].x-(window.innerWidth-375)))/8&&pencils.length===2){//这里要除以8，如果除以2会导致越宽导致两组铅笔距离越短
+                this.createPencil()
+            }
+        }
+```
 ## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
 ## 路径名或者变量中间有空格时，可以用双引号括起来
