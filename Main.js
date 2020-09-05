@@ -37,7 +37,6 @@ export class Main{
         //         image.height//目标canvas上绘制的高度
         //     );
         // }
-
     }
     //资源只需要加载一次，其他都是重置逻辑就好了，所里这里是第一次加载资源
     onResourceFirstLoaded(map){
@@ -53,13 +52,15 @@ export class Main{
     }
 
     init(){
+        //首先重置游戏是没有结束的
+        this.director.isGameOver=false;//游戏结束与否是导演的职责，所以赋给了导演的isGameOver变量。只需要控制这个值的变化就可以控制游戏的结束了，也就是控制run方法是否会不断的进行刷新。也就是可以控制cancelAnimationFrame是否能够执行。那么canvas是否能够继续渲染它的图像，也就是被这一个变量控制了。
         //image图片对象信息通过下面的put传进来
         this.dataStore
             // .put('background',new BackGround(this.ctx,this.dataStore.res.get('background')))
             // .put('background',new BackGround());
             .put('pencils',[])//上下两个铅笔以数组的数据类型的形式存储，我们每一个铅笔就是存储在dataStore的pencils为key的这样的一个数组里面。每次渲染的时候会按照次序以此渲染上下两个铅笔，因为上下两个铅笔的x坐标是一样的。给用户的感觉这两个铅笔是同时创造出来的，其实并不是，如果严格的以机器的思维去思考，这两个铅笔中间是有一定的额时间差，他们是以不同的时间创建的。
             .put('background',BackGround)
-            .put('land',Land)
+            .put('land',Land);
         // console.log(typeof BackGround)//这里打出来是function
 
 

@@ -1773,6 +1773,69 @@ export class DownPencil extends Pencil{
             }
         }
 ```
+## 小游戏控制逻辑整合，统筹配置。
+* 一个游戏的开始或者结束应该由一个标志性的判断。判断这个游戏是否game over了。在Main.js中增加一个变量.
+* 游戏结束与否是导演的职责，所以赋给了导演的isGameOver变量。只需要控制这个值的变化就可以控制游戏的结束了，也就是控制run方法是否会不断的进行刷新。也就是可以控制cancelAnimationFrame是否能够执行。那么canvas是否能够继续渲染它的图像，也就是被这一个变量控制了。
+```js
+    init(){
+        //首先重置游戏是没有结束的
+        this.director.isGameOver=false;//游戏结束与否是导演的职责，所以赋给了导演的isGameOver变量。只需要控制这个值的变化就可以控制游戏的结束了，也就是控制run方法是否会不断的进行刷新。也就是可以控制cancelAnimationFrame是否能够执行。那么canvas是否能够继续渲染它的图像，也就是被这一个变量控制了。
+        this.dataStore
+            .put('pencils',[])
+            .put('background',BackGround)
+            .put('land',Land);
+        this.director.createPencil();
+        this.director.run();
+    }
+```
+* 在Director.js里面增加判断来开始游戏和结束游戏
+```js
+    run(){
+        if(!this.isGameOver){//增加一个确定游戏开始的变量值isGameOver
+            this.dataStore.get('background').draw();
+            const pencils=this.dataStore.get('pencils')
+            if(window.innerWidth<375){
+                if(pencils[0].x+pencils[0].width<=0&&pencils.length===4){
+                    pencils.splice(0,1)
+                    pencils.splice(0,1)//这里用下面的shift也是一样的效果
+                    // pencils.shift()
+                    // pencils.shift()
+                    // this.createPencil()//这个会不断创建一大堆铅笔。
+                }
+                if(pencils[0].x<=(window.innerWidth-pencils[0].x)/2&&pencils.length===2){
+                    this.createPencil()
+                }
+
+            }
+
+            if(window.innerWidth>375){
+                if(pencils[0].x-(window.innerWidth-375)+pencils[0].width<=0&&pencils.length===4){
+                    pencils.splice(0,1)
+                    pencils.splice(0,1)//这里用下面的shift也是一样的效果
+                    // pencils.shift()
+                    // pencils.shift()
+                    // this.createPencil()//这个会不断创建一大堆铅笔。
+                }
+                if(pencils[0].x-(window.innerWidth-375)<=(window.innerWidth-(pencils[0].x-(window.innerWidth-375)))/8&&pencils.length===2){
+                    this.createPencil()
+                }
+            }
+
+            this.dataStore.get('pencils').forEach(function(value){
+                value.draw()
+            });
+            this.dataStore.get('land').draw();
+            let timer=requestAnimationFrame(()=>this.run())
+            this.dataStore.put('timer',timer)
+        }
+        else{//this.isGameOver是true就结束游戏
+            console.log('游戏结束')
+            cancelAnimationFrame(this.dataStore.get('timer'));//让动画停止。
+            this.dataStore.destroy()//把所有精灵置空，保证内存是清零的。对我们的性能和内存而言都是一个释放。如果是后端不考虑内存那么服务端可能会爆掉。
+        }
+    }
+```
+* 到这里这个游戏的主控制就算比较完善了。下一步就开始处理鸟的图形和逻辑了。
 ## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
 ## 路径名或者变量中间有空格时，可以用双引号括起来
