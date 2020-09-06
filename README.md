@@ -1774,7 +1774,7 @@ export class DownPencil extends Pencil{
         }
 ```
 ## 小游戏控制逻辑整合，统筹配置。
-* 一个游戏的开始或者结束应该由一个标志性的判断。判断这个游戏是否game over了。在Main.js中增加一个变量.
+* 一个游戏的开始或者结束应该由一个标志性的判断。**判断这个游戏是否game over了。在Main.js中增加一个变量**.
 * 游戏结束与否是导演的职责，所以赋给了导演的isGameOver变量。只需要控制这个值的变化就可以控制游戏的结束了，也就是控制run方法是否会不断的进行刷新。也就是可以控制cancelAnimationFrame是否能够执行。那么canvas是否能够继续渲染它的图像，也就是被这一个变量控制了。
 ```js
     init(){
@@ -1836,6 +1836,54 @@ export class DownPencil extends Pencil{
     }
 ```
 * 到这里这个游戏的主控制就算比较完善了。下一步就开始处理鸟的图形和逻辑了。
+## 小鸟类的创建和逻辑分析
+* 小鸟由的翅膀摆动效果由小鸟的三张图组成的三种状态完成。这三张图的翅膀刚好是上中下状态，组合在一起就像飞一样。**这三张图片不断的进行循环切换**。
+* 在Main.js中init函数里面增加一个put存入，也就是把birds存入到DataStore里面去
+```js
+    init(){
+        //首先重置游戏是没有结束的
+        this.director.isGameOver=false;
+        this.dataStore
+            .put('pencils',[])
+            .put('background',BackGround)
+            .put('land',Land)
+            .put('birds',Birds);//增加鸟类
+        this.director.createPencil();
+        this.director.run();
+    }
+```
+* 在Director.js中的run方法中增加一个get来获取这个图片，记住要放到最后，放到最后，因为放到前面可能会被覆盖掉。
+```js
+            this.dataStore.get('pencils').forEach(function(value){
+                value.draw()
+            });
+            this.dataStore.get('land').draw();
+            this.dataStore.get('birds').draw();//放到最后，因为放到前面可能会被覆盖掉
+```
+* 在Birds.js类中增加代码
+```js
+//小鸟类
+//循环的渲染三只小鸟
+//其实是循环渲染图片的三个部分
+import {Sprite} from "../base/Sprite.js";
+
+export class Birds extends Sprite{
+    constructor(){
+        const image=Sprite.getImage('birds')
+        super(image,0,0,image.width,image.height,
+            0,0,image.width,image.height)
+    }
+    
+}
+```
+* 这样就可以看到在canvas画布**左上角会有三个不同翅膀的小鸟啦**。因为我们剪裁了这张鸟的完整的图，这张完整的图就是有三只不同翅膀的小鸟的，然后放到canvas的左上角。
+* 因为放到所有图册之上，所以铅笔和背景是不会去覆盖小鸟。
+* 这就是最初始状态的小鸟绘制出来的状态。
+* 接下来的任务就是循环的去显示这三张小鸟，并让用户感觉它是在切换翅膀的三个状态，也就是说翅膀是煽动的。并且还让它只显示一张图片。
+## 图片还可以做一张来代表多张图片
+* 我们这里做了7张图片，然后分别去获取。
+* **我们还可以做一张图片（可以用PS或者自带的图形软件去拼接），然后放在一张图片上的不同位置，也就是不同坐标下，然后通过坐标来裁剪去获取你需要的这张大图中的某些小图部分进行渲染**。这样就只需要加载一张图片，然后再这一张图片上渲染就OK了。**这样就不需要Resources.js和ResourceLoader.js这两个类了**。可以追求极致的性质和用户体验。但是这样做有一个**缺点**:
+    * 就是处理每一个资源的时候会比较累。需要计算某部分的图片再整张图片中的相对位置。这就无形中增加了我们编程的难度系数和开发时间。
 ## 设置webStorm终端从cmd.exe改为git bash
 * 在工具->terminal->shell path->由cmd.exe修改为我自己的git bash的目录（也就是"C:\Program Files (x86)\Git\bin\sh.exe" -login -i）,然后重启编辑器即可完成,具体请看这里的说明——[git bash 集成到 webStorm 中,修改终端 Terminal 为 GitBash](https://blog.csdn.net/ling_kedu/article/details/104653765/)
 ## 路径名或者变量中间有空格时，可以用双引号括起来

@@ -4,8 +4,9 @@ import {Director} from "./js/Director.js";
 import {BackGround} from "./js/runtime/BackGround.js";
 import {DataStore} from "./js/base/DataStore.js";
 import {Land} from "./js/runtime/Land.js";
-import {UpPencil} from "./js/runtime/UpPencil.js";
-import {DownPencil} from "./js/runtime/DownPencil.js";
+// import {UpPencil} from "./js/runtime/UpPencil.js";
+// import {DownPencil} from "./js/runtime/DownPencil.js";
+import {Birds} from "./js/player/Birds.js";
 
 export class Main{
     constructor(){
@@ -60,7 +61,8 @@ export class Main{
             // .put('background',new BackGround());
             .put('pencils',[])//上下两个铅笔以数组的数据类型的形式存储，我们每一个铅笔就是存储在dataStore的pencils为key的这样的一个数组里面。每次渲染的时候会按照次序以此渲染上下两个铅笔，因为上下两个铅笔的x坐标是一样的。给用户的感觉这两个铅笔是同时创造出来的，其实并不是，如果严格的以机器的思维去思考，这两个铅笔中间是有一定的额时间差，他们是以不同的时间创建的。
             .put('background',BackGround)
-            .put('land',Land);
+            .put('land',Land)
+            .put('birds',Birds);
         // console.log(typeof BackGround)//这里打出来是function
 
 

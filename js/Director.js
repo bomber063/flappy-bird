@@ -82,8 +82,7 @@ export class Director{
                 value.draw()
             });
             this.dataStore.get('land').draw();
-            // this.dataStore.get('pencilUp').draw();
-            // this.dataStore.get('pencilDown').draw();
+            this.dataStore.get('birds').draw();
 
             let timer=requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
             // let timer=setTimeout(()=>this.run(),1000)//用箭头函数的时候this是外面的this
