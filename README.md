@@ -2086,8 +2086,39 @@ export class Birds extends Sprite{
     }
 }
 ```
-### 让小鸟掉下去，结合老师的代码我没有考虑的地方，
-* 
+### 让小鸟掉下去(自有落体)，结合老师的代码我没有考虑的地方。
+* **老师的重力加速度写错了，不是0.98m/s<sup>2</sup>，而是9.8m/s<sup>2</sup>**。
+* 这里的重力加速度太快了，所以为了游戏效果，修改为了`9.8/24`。
+* 增加一个开始的时候上抬的动作。`const offsetUp=30;`
+* 具体改动的地方在draw方法里面
+```js
+    draw(){
+        //如果索引为2就重置到0的状态
+        const speed=0.2;
+        this.count=this.count+speed;
+        if(this.index>=2){
+            this.count=0;
+        }
+        // else{
+            // this.index=this.index+1
+        // 减速器的作用，Math.floor() === 向下取整
+            this.index=Math.floor(this.count);
+            this.time=this.time+1;
+        // }
+        const offsetUp=30;//向上抬的值offsetUp
+        super.draw(
+            this.image,
+            this.clippingX[this.index],
+            this.clippingY[this.index],
+            this.clippingWidth[this.index],
+            this.clippingHeight[this.index],
+            this.birdsX[this.index],
+            this.birdsY[this.index]+1/2*9.8/24*this.time*(this.time-offsetUp),//向上抬的值offsetUp和重力加速的修改为9.8/24
+            this.birdsWidth[this.index],
+            this.birdsHeight[this.index]
+        )
+    }
+```
 ## 图片还可以做一张来代表多张图片
 * 我们这里做了7张图片，然后分别去获取。
 * **我们还可以做一张图片（可以用PS或者自带的图形软件去拼接），然后放在一张图片上的不同位置，也就是不同坐标下，然后通过坐标来裁剪去获取你需要的这张大图中的某些小图部分进行渲染**。这样就只需要加载一张图片，然后再这一张图片上渲染就OK了。**这样就不需要Resources.js和ResourceLoader.js这两个类了**。可以追求极致的性质和用户体验。但是这样做有一个**缺点**:

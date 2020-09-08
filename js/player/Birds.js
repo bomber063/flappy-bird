@@ -56,8 +56,9 @@ export class Birds extends Sprite{
             // this.index=this.index+1
         // 减速器的作用，Math.floor() === 向下取整
             this.index=Math.floor(this.count);
-            this.time=this.time+1/4;
+            this.time=this.time+1;
         // }
+        const offsetUp=30;
         super.draw(
             this.image,
             this.clippingX[this.index],
@@ -65,7 +66,7 @@ export class Birds extends Sprite{
             this.clippingWidth[this.index],
             this.clippingHeight[this.index],
             this.birdsX[this.index],
-            this.birdsY[this.index]+1/2*9.8*this.time*this.time,
+            this.birdsY[this.index]+1/2*9.8/24*this.time*(this.time-offsetUp),
             this.birdsWidth[this.index],
             this.birdsHeight[this.index]
         )
