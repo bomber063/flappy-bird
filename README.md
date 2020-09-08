@@ -1981,6 +1981,113 @@ export class Birds extends Sprite{
     }
 }
 ```
+### 结合老师的代码我没有考虑的地方，翅膀的摆动减速
+* 老师用到了this.count来控制this.index。
+* 老师用到的这个API——[Math.floor()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Math/floor),**Math.floor() === 向下取整**。这里也就是速度是0.2，用speed表示速度。但是速度到达整数部分才会显示，不是整数部分会舍弃掉（这个舍弃的部分就会导致数组教表的切换速度慢下来）。
+* **主要变化在draw里面**。
+```js
+export class Birds extends Sprite{
+    constructor(){
+        super()
+    // ...上面省略
+        this.index=0;//脚标必须为整数
+        this.count=0;//这个是用来循环小鸟个数的，必须为整数
+        this.time=0;
+
+    }
+    draw(){
+        //如果索引为2就重置到0的状态
+        const speed=0.2;
+        this.count=this.count+speed;
+        if(this.index>=2){
+            this.count=0;
+        }
+        // else{
+            // this.index=this.index+1
+        // 减速器的作用，Math.floor() === 向下取整
+            this.index=Math.floor(this.count);
+            this.time=this.time+1/4;
+        }
+}
+```
+* Birds.js的完整代码
+```js
+//小鸟类
+//循环的渲染三只小鸟
+//其实是循环渲染图片的三个部分
+import {Sprite} from "../base/Sprite.js";
+
+export class Birds extends Sprite{
+    constructor(){
+        const image=Sprite.getImage('birds')
+        super(image,0,0,image.width,image.height,
+            0,0,image.width,image.height);
+
+        // 小鸟的三种状态需要一个数组去存储
+        //小鸟的宽是34，小鸟的高度是24，上下边距是10，小鸟左右边距是9
+        this.clippingX=[
+            9,//第一张小鸟图的x位置，第一只小鸟左边距9
+            9+34+18,//第二张小鸟图的x位置，第一只小鸟左边距9加上第一只小鸟的宽度34，加上第一只小鸟右边距和第二只小鸟的左边距一共18
+            9+34+18+34+18//第三张小鸟图的x位置，第一只小鸟左边距9加上第一只小鸟的宽度34，加上第一只小鸟右边距和第二只小鸟的左边距一共18，然后再加上第二只小鸟的宽度34，在加上第二只小鸟右边距和第三只小鸟的左边距一共18
+        ];
+        this.clippingY=[10,10,10];//三只小鸟距离上边距都是10
+        this.clippingWidth=[34,34,34];//三只小鸟的宽度都是34
+        this.clippingHeight=[24,24,24];//三只小鸟的高度都是24
+        if(window.innerWidth<=375){
+            this.birdX=window.innerWidth/4;//一只小鸟的初始x位置为window内部的4分之一的位置，也就是偏左方的位置。
+        }
+        if(window.innerWidth>375){//兼容window大宽度
+            this.birdX=this.srcW/4
+        }
+        this.birdsX=[this.birdX,this.birdX,this.birdX];//三只小鸟的x位置统一在一个数组里面
+        this.birdY=window.innerHeight/2;//小鸟的初始y位置居中
+        this.birdsY=[this.birdY,this.birdY,this.birdY];//三只小鸟的y位置统一在一个数组里面
+        this.birdWidth=34;//小鸟的宽度为34
+        this.birdsWidth=[this.birdWidth,this.birdWidth,this.birdWidth];//三只小鸟的宽度统一放到数组里面
+        this.birdHeight=24;//小鸟的高度为24
+        this.birdsHeight=[this.birdHeight,this.birdHeight,this.birdHeight];//三只小鸟的高度统一放到数组里面
+
+
+        // this.y=[this.birdY,this.birdY,this.birdY];//跟前面的this.birdsY一样,但是这里的this.y是基类Sprite.js中的y
+        this.index=0;//脚标必须为整数
+        this.count=0;//这个是用来循环小鸟个数的，必须为整数
+        this.time=0;
+
+
+        // this.y=this.birdsY[this.index]*1/2*9.8*this.time*this.time
+
+        // let g=1/2*9.8*this.time*this.time
+
+    }
+    draw(){
+        //如果索引为2就重置到0的状态
+        const speed=0.2;
+        this.count=this.count+speed;
+        if(this.index>=2){
+            this.count=0;
+        }
+        // else{
+            // this.index=this.index+1
+        // 减速器的作用，Math.floor() === 向下取整
+            this.index=Math.floor(this.count);
+            this.time=this.time+1/4;
+        // }
+        super.draw(
+            this.image,
+            this.clippingX[this.index],
+            this.clippingY[this.index],
+            this.clippingWidth[this.index],
+            this.clippingHeight[this.index],
+            this.birdsX[this.index],
+            this.birdsY[this.index]+1/2*9.8*this.time*this.time,
+            this.birdsWidth[this.index],
+            this.birdsHeight[this.index]
+        )
+    }
+}
+```
+### 让小鸟掉下去，结合老师的代码我没有考虑的地方，
+* 
 ## 图片还可以做一张来代表多张图片
 * 我们这里做了7张图片，然后分别去获取。
 * **我们还可以做一张图片（可以用PS或者自带的图形软件去拼接），然后放在一张图片上的不同位置，也就是不同坐标下，然后通过坐标来裁剪去获取你需要的这张大图中的某些小图部分进行渲染**。这样就只需要加载一张图片，然后再这一张图片上渲染就OK了。**这样就不需要Resources.js和ResourceLoader.js这两个类了**。可以追求极致的性质和用户体验。但是这样做有一个**缺点**:

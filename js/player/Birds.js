@@ -35,8 +35,8 @@ export class Birds extends Sprite{
 
 
         // this.y=[this.birdY,this.birdY,this.birdY];//跟前面的this.birdsY一样,但是这里的this.y是基类Sprite.js中的y
-        this.index=0;
-        // this.count=0;
+        this.index=0;//脚标必须为整数
+        this.count=0;//这个是用来循环小鸟个数的，必须为整数
         this.time=0;
 
 
@@ -47,13 +47,17 @@ export class Birds extends Sprite{
     }
     draw(){
         //如果索引为2就重置到0的状态
-        if(this.index===2){
-            this.index=0
+        const speed=0.2;
+        this.count=this.count+speed;
+        if(this.index>=2){
+            this.count=0;
         }
-        else{
-            this.index=this.index+1
-            this.time=this.time+1/4
-        }
+        // else{
+            // this.index=this.index+1
+        // 减速器的作用，Math.floor() === 向下取整
+            this.index=Math.floor(this.count);
+            this.time=this.time+1/4;
+        // }
         super.draw(
             this.image,
             this.clippingX[this.index],
