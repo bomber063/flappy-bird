@@ -34,7 +34,7 @@ export class Birds extends Sprite{
         this.birdsHeight=[this.birdHeight,this.birdHeight,this.birdHeight];//三只小鸟的高度统一放到数组里面
 
 
-        // this.y=[this.birdY,this.birdY,this.birdY];//跟前面的this.birdsY一样,但是这里的this.y是基类Sprite.js中的y
+        this.y=[this.birdY,this.birdY,this.birdY];//跟前面的this.birdsY一样,但是这里的this.y是基类Sprite.js中的y
         this.index=0;//脚标必须为整数
         this.count=0;//这个是用来循环小鸟个数的，必须为整数
         this.time=0;
@@ -52,13 +52,18 @@ export class Birds extends Sprite{
         if(this.index>=2){
             this.count=0;
         }
-        // else{
-            // this.index=this.index+1
-        // 减速器的作用，Math.floor() === 向下取整
             this.index=Math.floor(this.count);
             this.time=this.time+1;
-        // }
+        //模拟中立加速度
+        const g=9.8/24;
+        //向上移动一丢丢的偏移量
         const offsetUp=30;
+        //小鸟的位移
+        const offsetY=(g*this.time*(this.time-offsetUp))/2;
+        for(let i=0;i<=2;i++){//老师这里加了循环，经过测试这个循环不加也不影响，可能是前面this.index=Math.floor(this.count)已经相当于循环了
+        // this.birdsY[this.index]= this.birdsY[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。
+        this.birdsY[this.index]=this.y[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。上面的代码会出现奇怪的效果。我这里第一次写错了，没有注意。
+        }
         super.draw(
             this.image,
             this.clippingX[this.index],
@@ -66,7 +71,7 @@ export class Birds extends Sprite{
             this.clippingWidth[this.index],
             this.clippingHeight[this.index],
             this.birdsX[this.index],
-            this.birdsY[this.index]+1/2*9.8/24*this.time*(this.time-offsetUp),
+            this.birdsY[this.index],
             this.birdsWidth[this.index],
             this.birdsHeight[this.index]
         )

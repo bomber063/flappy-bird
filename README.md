@@ -2119,6 +2119,51 @@ export class Birds extends Sprite{
         )
     }
 ```
+* **Birds.js类的draw方法中把变量提取出来**。
+* 老师这里加了循环，经过测试这个循环不加也不影响，可能是前面this.index=Math.floor(this.count)已经相当于循环了
+* `this.y[this.index]`是固定不变的，如果是`this.birdsY[this.index]`**它是会不断变化。我这里第一次写错了，没有注意。**
+* 主要改变的还是draw方法 
+```js
+    constructor(){
+        //前面的代码省略......
+        this.y=[this.birdY,this.birdY,this.birdY];//跟前面的this.birdsY一样,但是这里的this.y是基类Sprite.js中的y
+        this.index=0;//脚标必须为整数
+        this.count=0;//这个是用来循环小鸟个数的，必须为整数
+        this.time=0;
+
+    }
+draw(){
+        //如果索引为2就重置到0的状态
+        const speed=0.2;
+        this.count=this.count+speed;
+        if(this.index>=2){
+            this.count=0;
+        }
+            this.index=Math.floor(this.count);
+            this.time=this.time+1;
+        //模拟中立加速度
+        const g=9.8/24;
+        //向上移动一丢丢的偏移量
+        const offsetUp=30;
+        //小鸟的位移
+        const offsetY=(g*this.time*(this.time-offsetUp))/2;
+        for(let i=0;i<=2;i++){//老师这里加了循环，经过测试这个循环不加也不影响，可能是前面this.index=Math.floor(this.count)已经相当于循环了
+        // this.birdsY[this.index]= this.birdsY[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。
+        this.birdsY[this.index]=this.y[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。上面的代码会出现奇怪的效果。我这里第一次写错了，没有注意。
+        }
+        super.draw(
+            this.image,
+            this.clippingX[this.index],
+            this.clippingY[this.index],
+            this.clippingWidth[this.index],
+            this.clippingHeight[this.index],
+            this.birdsX[this.index],
+            this.birdsY[this.index],
+            this.birdsWidth[this.index],
+            this.birdsHeight[this.index]
+        )
+    }
+```
 ## 图片还可以做一张来代表多张图片
 * 我们这里做了7张图片，然后分别去获取。
 * **我们还可以做一张图片（可以用PS或者自带的图形软件去拼接），然后放在一张图片上的不同位置，也就是不同坐标下，然后通过坐标来裁剪去获取你需要的这张大图中的某些小图部分进行渲染**。这样就只需要加载一张图片，然后再这一张图片上渲染就OK了。**这样就不需要Resources.js和ResourceLoader.js这两个类了**。可以追求极致的性质和用户体验。但是这样做有一个**缺点**:
