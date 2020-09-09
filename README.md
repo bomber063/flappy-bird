@@ -2120,7 +2120,7 @@ export class Birds extends Sprite{
     }
 ```
 * **Birds.js类的draw方法中把变量提取出来**。
-* 老师这里加了循环，经过测试这个循环不加也不影响，可能是前面this.index=Math.floor(this.count)已经相当于循环了
+* 这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
 * `this.y[this.index]`是固定不变的，如果是`this.birdsY[this.index]`**它是会不断变化。我这里第一次写错了，没有注意。**
 * 主要改变的还是draw方法 
 ```js
@@ -2147,7 +2147,7 @@ draw(){
         const offsetUp=30;
         //小鸟的位移
         const offsetY=(g*this.time*(this.time-offsetUp))/2;
-        for(let i=0;i<=2;i++){//老师这里加了循环，经过测试这个循环不加也不影响，可能是前面this.index=Math.floor(this.count)已经相当于循环了
+        for(let i=0;i<=2;i++){//这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
         // this.birdsY[this.index]= this.birdsY[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。
         this.birdsY[this.index]=this.y[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。上面的代码会出现奇怪的效果。我这里第一次写错了，没有注意。
         }
@@ -2164,6 +2164,64 @@ draw(){
         )
     }
 ```
+## 增加点击事件让小鸟往上飞
+* 在微信小游戏里面的API是[wx.onTouchStart](https://developers.weixin.qq.com/minigame/dev/api/base/app/touch-event/wx.onTouchStart.html),用下面的API也可以，但是这里的API就更符合微信的规范，并且BUG率更低一些，建议不要用下面浏览器的API。
+* 在浏览器中可以使用的API为[addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener),不过这个API在小游戏中也是可以使用的，上面的API就是这个API的封装而已。
+### 我自己写的时候犯的错误
+* 错误如下:
+    1. 在Birds.js类里面的循环,这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面，之前的`this.birdsY[i]`，我用的是`this.birdsY[this.index]`
+        ```js
+                for(let i=0;i<=2;i++){//这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
+                // this.birdsY[this.index]= this.birdsY[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。
+                this.birdsY[i]=this.y[i]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。上面的代码会出现奇怪的效果。我这里第一次写错了，没有注意。
+                }
+        ```
+    2. `this.dataStore.get('birds').y[i]=this.dataStore.get('birds').birdsY[i]`赋值写反了。
+    3.`this.dataStore.get('birds').time=0;`这里还需要注意时间要清零，不然会一直做自由落体运动
+* 在Birds.js类里面的循环,这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
+```js
+        for(let i=0;i<=2;i++){//这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
+        // this.birdsY[this.index]= this.birdsY[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。
+        this.birdsY[i]=this.y[i]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。上面的代码会出现奇怪的效果。我这里第一次写错了，没有注意。
+        }
+```
+* Director.js类里面的birdsEvent()函数
+```js
+    // birdsEvent() {
+    //     for (let i = 0; i <= 2; i++) {
+    //         this.dataStore.get('birds').y[i] =
+    //             this.dataStore.get('birds').birdsY[i];
+    //     }
+    //     this.dataStore.get('birds').time = 0;
+    // }
+```
+* 我最开始写的错误是把
+```js
+this.dataStore.get('birds').y[i]=this.dataStore.get('birds').birdsY[i]
+```
+* 写成了
+```js
+this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
+```
+* 最开始写反了，在`Birds.js中this.birdsY[this.index]`就是y方向的位移。`this.birdsY[i]=this.y[i]+offsetY`，其中`this.y[this.index]`是固定不变的，`this.birdsY[this.index]`它是会随着`this.y[i]+offsetY`的变化而变化。所以要保持小鸟当前的位置就需要把`this.birdsY[i]`赋值给`this.y[i]`。不然会一致从最中间开始往上飞。
+* 我自己在Main.js中写的registerEvent函数。
+* 这里还需要注意时间要清零，不然会一直做自由落体运动。`this.dataStore.get('birds').time=0`
+```js
+    registerEvent(){
+            this.canvas.addEventListener('click',()=>{
+
+            for(let i=0;i<=2;i++){
+                this.dataStore.get('birds').y[i]=this.dataStore.get('birds').birdsY[i];//在Birds.js中this.birdsY[this.index]就是y方向的位移。this.birdsY[i]=this.y[i]+offsetY，其中this.y[this.index]是固定不变的，this.birdsY[this.index]它是会随着this.y[i]+offsetY的变化而变化。所以要保持小鸟当前的位置就需要把this.birdsY[i]赋值给this.y[i]。不然会一致从最中间开始往上飞。
+            }
+            this.dataStore.get('birds').time=0;//这里还需要注意时间要清零，不然会一直做自由落体运动
+        })
+    }
+```
+### 结合老师的代码后我没有考虑的地方
+* 未考虑的地方：
+    1. 老师的代码是把事件逻辑单独写到Director.js中，然后再Main.js中条用这个事件即可。
+    2. 除了浏览器中的click事件，增加手机端的触摸事件touchstart。
+* 添加事件属于初始化操作，初始化可以在Main.js类里面进行。
 ## 图片还可以做一张来代表多张图片
 * 我们这里做了7张图片，然后分别去获取。
 * **我们还可以做一张图片（可以用PS或者自带的图形软件去拼接），然后放在一张图片上的不同位置，也就是不同坐标下，然后通过坐标来裁剪去获取你需要的这张大图中的某些小图部分进行渲染**。这样就只需要加载一张图片，然后再这一张图片上渲染就OK了。**这样就不需要Resources.js和ResourceLoader.js这两个类了**。可以追求极致的性质和用户体验。但是这样做有一个**缺点**:

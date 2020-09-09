@@ -60,9 +60,9 @@ export class Birds extends Sprite{
         const offsetUp=30;
         //小鸟的位移
         const offsetY=(g*this.time*(this.time-offsetUp))/2;
-        for(let i=0;i<=2;i++){//老师这里加了循环，经过测试这个循环不加也不影响，可能是前面this.index=Math.floor(this.count)已经相当于循环了
+        for(let i=0;i<=2;i++){//这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
         // this.birdsY[this.index]= this.birdsY[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。
-        this.birdsY[this.index]=this.y[this.index]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。上面的代码会出现奇怪的效果。我这里第一次写错了，没有注意。
+        this.birdsY[i]=this.y[i]+offsetY;//this.y[this.index]是固定不变的，如果是this.birdsY[this.index]它是会不断变化。上面的代码会出现奇怪的效果。我这里第一次写错了，没有注意。
         }
         super.draw(
             this.image,

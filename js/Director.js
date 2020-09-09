@@ -30,6 +30,13 @@ export class Director{
         this.dataStore.get('pencils').push(new DownPencil(top))//get是获取到pencils对应的空数组。然后往里面push数据。DownPencil这个类唯一需要传的参数就是top
     }
 
+    // birdsEvent() {
+    //     for (let i = 0; i <= 2; i++) {
+    //         this.dataStore.get('birds').y[i] =
+    //             this.dataStore.get('birds').birdsY[i];
+    //     }
+    //     this.dataStore.get('birds').time = 0;
+    // }
     run(){
         if(!this.isGameOver){//增加一个确定游戏开始的变量值isGameOver
             // console.log(this.isGameOver)

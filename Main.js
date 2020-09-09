@@ -63,6 +63,7 @@ export class Main{
             .put('background',BackGround)
             .put('land',Land)
             .put('birds',Birds);
+            this.registerEvent();
         // console.log(typeof BackGround)//这里打出来是function
 
 
@@ -75,5 +76,14 @@ export class Main{
         //上面的代码就是使用dataStore的get方法去获取图片实例。
         //        const backgroundSprite=this.dataStore.get('background');
         //         backgroundSprite.draw();
+    }
+    registerEvent(){
+            this.canvas.addEventListener('click',()=>{
+
+            for(let i=0;i<=2;i++){
+                this.dataStore.get('birds').y[i]=this.dataStore.get('birds').birdsY[i];//在Birds.js中this.birdsY[this.index]就是y方向的位移。this.birdsY[i]=this.y[i]+offsetY，其中this.y[this.index]是固定不变的，this.birdsY[this.index]它是会随着this.y[i]+offsetY的变化而变化。所以要保持小鸟当前的位置就需要把this.birdsY[i]赋值给this.y[i]。不然会一致从最中间开始往上飞。
+            }
+            this.dataStore.get('birds').time=0;//这里还需要注意时间要清零，不然会一直做自由落体运动
+        })
     }
 }
