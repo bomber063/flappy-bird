@@ -78,12 +78,30 @@ export class Main{
         //         backgroundSprite.draw();
     }
     registerEvent(){
-            this.canvas.addEventListener('click',()=>{
+        this.canvas.addEventListener('click',(e)=>{
+                e.preventDefault()//这里是屏蔽JS的事件冒泡，我不屏蔽冒泡也没感觉哪里有差别。
 
-            for(let i=0;i<=2;i++){
-                this.dataStore.get('birds').y[i]=this.dataStore.get('birds').birdsY[i];//在Birds.js中this.birdsY[this.index]就是y方向的位移。this.birdsY[i]=this.y[i]+offsetY，其中this.y[this.index]是固定不变的，this.birdsY[this.index]它是会随着this.y[i]+offsetY的变化而变化。所以要保持小鸟当前的位置就需要把this.birdsY[i]赋值给this.y[i]。不然会一致从最中间开始往上飞。
-            }
-            this.dataStore.get('birds').time=0;//这里还需要注意时间要清零，不然会一直做自由落体运动
+                if(this.director.isGameOver){
+                    console.log('游戏开始');
+                    this.init();
+                }
+                else{
+                    this.director.birdsEvent();
+                }
+
         })
+        this.canvas.addEventListener('touchstart',(e)=>{
+            e.preventDefault()//这里是屏蔽JS的事件冒泡，我不屏蔽冒泡也没感觉哪里有差别。
+
+            if(this.director.isGameOver){
+                console.log('游戏开始');
+                this.init();
+            }
+            else{
+                this.director.birdsEvent();
+            }
+
+        })
+
     }
 }

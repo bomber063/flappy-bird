@@ -2165,6 +2165,7 @@ draw(){
     }
 ```
 ## 增加点击事件让小鸟往上飞
+* 这里的事件里面的函数使用箭头函数，因为箭头函数的this是外面传进去的this。
 * 在微信小游戏里面的API是[wx.onTouchStart](https://developers.weixin.qq.com/minigame/dev/api/base/app/touch-event/wx.onTouchStart.html),用下面的API也可以，但是这里的API就更符合微信的规范，并且BUG率更低一些，建议不要用下面浏览器的API。
 * 在浏览器中可以使用的API为[addEventListener](https://developer.mozilla.org/zh-CN/docs/Web/API/EventTarget/addEventListener),不过这个API在小游戏中也是可以使用的，上面的API就是这个API的封装而已。
 ### 我自己写的时候犯的错误
@@ -2177,7 +2178,7 @@ draw(){
                 }
         ```
     2. `this.dataStore.get('birds').y[i]=this.dataStore.get('birds').birdsY[i]`赋值写反了。
-    3.`this.dataStore.get('birds').time=0;`这里还需要注意时间要清零，不然会一直做自由落体运动
+    3. `this.dataStore.get('birds').time=0;`点击之后小鸟上飞，那么不应该继续下落，如果继续下落速度会越来越大。所以这里还需要注意时间要清零，不然会一直做自由落体运动
 * 在Birds.js类里面的循环,这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
 ```js
         for(let i=0;i<=2;i++){//这里的循环是跟Director.js里面birdsEvent同步的，如果不用i，会导致不同步而出现奇怪的画面。
@@ -2203,7 +2204,7 @@ this.dataStore.get('birds').y[i]=this.dataStore.get('birds').birdsY[i]
 ```js
 this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
 ```
-* 最开始写反了，在`Birds.js中this.birdsY[this.index]`就是y方向的位移。`this.birdsY[i]=this.y[i]+offsetY`，其中`this.y[this.index]`是固定不变的，`this.birdsY[this.index]`它是会随着`this.y[i]+offsetY`的变化而变化。所以要保持小鸟当前的位置就需要把`this.birdsY[i]`赋值给`this.y[i]`。不然会一致从最中间开始往上飞。
+* 最开始写反了，在Birds.js中`this.birdsY[this.index]`就是y方向的位移。`this.birdsY[i]=this.y[i]+offsetY`，其中`this.y[this.index]`是固定不变的，`this.birdsY[this.index]`它是会随着`this.y[i]+offsetY`的变化而变化。所以要保持小鸟当前的位置就需要把`this.birdsY[i]`赋值给`this.y[i]`。不然会一致从最中间开始往上飞。
 * 我自己在Main.js中写的registerEvent函数。
 * 这里还需要注意时间要清零，不然会一直做自由落体运动。`this.dataStore.get('birds').time=0`
 ```js
@@ -2219,9 +2220,53 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
 ```
 ### 结合老师的代码后我没有考虑的地方
 * 未考虑的地方：
-    1. 老师的代码是把事件逻辑单独写到Director.js中，然后再Main.js中条用这个事件即可。
+    1. 老师的代码是把事件逻辑单独写到Director.js中的birdsEvent函数，然后再Main.js中调用这个事件即可。
     2. 除了浏览器中的click事件，增加手机端的触摸事件touchstart。
+    3. `e.preventDefault()`这里是屏蔽JS的事件冒泡，我不屏蔽冒泡也没感觉哪里有差别。
+    4. 游戏开始和游戏结束应该使用`this.director.isGameOver`确定游戏开始与结束。
 * 添加事件属于初始化操作，初始化可以在Main.js类里面进行。
+```js
+    registerEvent(){
+        this.canvas.addEventListener('click',(e)=>{
+                e.preventDefault()//这里是屏蔽JS的事件冒泡，我不屏蔽冒泡也没感觉哪里有差别。
+
+                if(this.director.isGameOver){
+                    console.log('游戏开始');
+                    this.init();
+                }
+                else{
+                    this.director.birdsEvent();
+                }
+
+        })
+        this.canvas.addEventListener('touchstart',(e)=>{
+            e.preventDefault()//这里是屏蔽JS的事件冒泡，我不屏蔽冒泡也没感觉哪里有差别。
+
+            if(this.director.isGameOver){
+                console.log('游戏开始');
+                this.init();
+            }
+            else{
+                this.director.birdsEvent();
+            }
+
+        })
+
+    }
+```
+* 在Director.js类中增加birdsEvent函数。
+```js
+    birdsEvent() {
+        for (let i = 0; i <= 2; i++) {//在Birds.js中this.birdsY[this.index]就是y方向的位移。this.birdsY[i]=this.y[i]+offsetY，其中this.y[this.index]是固定不变的，this.birdsY[this.index]它是会随着this.y[i]+offsetY的变化而变化。所以要保持小鸟当前的位置就需要把this.birdsY[i]赋值给this.y[i]。不然会一致从最中间开始往上飞。
+            this.dataStore.get('birds').y[i] =
+                this.dataStore.get('birds').birdsY[i];
+        }
+        this.dataStore.get('birds').time = 0;//这里还需要注意时间要清零，不然会一直做自由落体运动，点击之后小鸟上飞，那么不应该继续下落，如果继续下落速度会越来越大。所以要置零。
+    }
+```
+* 目前小鸟可以穿过一切东西，还可以横行无阻的飞，这是不合适的。还需要模拟出来碰撞关系，小鸟碰撞到铅笔或者地板的时候让游戏结束。
+## 小鸟碰撞到铅笔或者地板的时候让游戏结束。
+* 
 ## 图片还可以做一张来代表多张图片
 * 我们这里做了7张图片，然后分别去获取。
 * **我们还可以做一张图片（可以用PS或者自带的图形软件去拼接），然后放在一张图片上的不同位置，也就是不同坐标下，然后通过坐标来裁剪去获取你需要的这张大图中的某些小图部分进行渲染**。这样就只需要加载一张图片，然后再这一张图片上渲染就OK了。**这样就不需要Resources.js和ResourceLoader.js这两个类了**。可以追求极致的性质和用户体验。但是这样做有一个**缺点**:

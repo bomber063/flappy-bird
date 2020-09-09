@@ -30,13 +30,13 @@ export class Director{
         this.dataStore.get('pencils').push(new DownPencil(top))//get是获取到pencils对应的空数组。然后往里面push数据。DownPencil这个类唯一需要传的参数就是top
     }
 
-    // birdsEvent() {
-    //     for (let i = 0; i <= 2; i++) {
-    //         this.dataStore.get('birds').y[i] =
-    //             this.dataStore.get('birds').birdsY[i];
-    //     }
-    //     this.dataStore.get('birds').time = 0;
-    // }
+    birdsEvent() {
+        for (let i = 0; i <= 2; i++) {//在Birds.js中this.birdsY[this.index]就是y方向的位移。this.birdsY[i]=this.y[i]+offsetY，其中this.y[this.index]是固定不变的，this.birdsY[this.index]它是会随着this.y[i]+offsetY的变化而变化。所以要保持小鸟当前的位置就需要把this.birdsY[i]赋值给this.y[i]。不然会一致从最中间开始往上飞。
+            this.dataStore.get('birds').y[i] =
+                this.dataStore.get('birds').birdsY[i];
+        }
+        this.dataStore.get('birds').time = 0;//这里还需要注意时间要清零，不然会一直做自由落体运动，点击之后小鸟上飞，那么不应该继续下落，如果继续下落速度会越来越大。所以要置零。
+    }
     run(){
         if(!this.isGameOver){//增加一个确定游戏开始的变量值isGameOver
             // console.log(this.isGameOver)
