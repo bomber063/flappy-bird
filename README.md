@@ -2267,8 +2267,8 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
 * 目前小鸟可以穿过一切东西，还可以横行无阻的飞，这是不合适的。还需要模拟出来碰撞关系，小鸟碰撞到铅笔或者地板的时候让游戏结束。
 ## 小鸟碰撞到铅笔或者地板的时候让游戏结束
 ### 我自己写的碰撞代码
-* 在if和else这里遇到点困难，测试了一段时间，具体看后面的if...else的说明。
-* 主要在Director.js类的run方法中第一个`if(!this.isGameOver)`中写下一个if判断代码。这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，所以写到`if(!this.isGameOver)`里面比较好。
+* 在if和else这里遇到点困难，测试了一段时间，主要还是不熟悉。**具体看后面的if...else的说明**。
+* 主要在Director.js类的run方法中第一个`if(!this.isGameOver)`中写下一个if判断代码。**这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，**所以写到`if(!this.isGameOver)`里面比较好。
 ```js
         if(!this.isGameOver){//增加一个确定游戏开始的变量值isGameOver
             // ...前面的代码省略
@@ -2281,7 +2281,7 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
         }
 ```
 ## if和else之间不可以打分号和别的代码
-* 下面的if和else之间有代码会报错
+* 下面的if和else之间**有代码会报错**
 ```js
 let a=1
 if(a===1){
@@ -2292,7 +2292,7 @@ else{
   console.log(3)
 }
 ```
-* if和else之间有分号也报错
+* if和else之间**有分号也报错**
 ```js
 let a=1
 if(a===1){
@@ -2316,7 +2316,7 @@ else{
 ```
 ## if...if...else和if...else if...else
 ### 多个if，最后一个else
-* 多个if，最后一个是else，那么最后一个if和else会选择一个，前面的if都会执行.比如前面的if都是true，最后一个if是false.那么最后一个if不执行，但是else会执行。
+* 多个if，最后一个是else，那么最后一个if和else会选择一个，前面的if都会执行.**比如前面的if都是true，最后一个if是false.那么最后一个if不执行，但是else会执行。**
 ```js
 if(true){
   console.log(0)
@@ -2332,7 +2332,7 @@ else{
 }
 //打出0 1 3
 ```
-* 前面的if都会执行.比如前面的if都是true，最后一个if也是true.那么else不会执行。
+* 前面的if都会执行.比如前面的if都是true，**最后一个if也是true.最后一个if执行，那么else不会执行。**
 ```js
 if(true){
   console.log(0)
@@ -2349,7 +2349,7 @@ else{
 //打出0 1 2
 ```
 ### if，多个else if，然后else
-* 只要前面有一个是true就停止后面的代码执行
+* 只要前面**有一个是true就停止后面的代码执行**
 ```js
 if(true){
   console.log(0)
@@ -2393,7 +2393,7 @@ else{
 }
 //打出2
 ```
-* 前面的都是false，才会执行else的代码
+* **前面的都是false，才会执行else的代码**
 ```js
 if(false){
   console.log(0)
