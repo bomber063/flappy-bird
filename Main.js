@@ -89,7 +89,7 @@ export class Main{
                     this.director.birdsEvent();
                 }
 
-        })
+        });
         this.canvas.addEventListener('touchstart',(e)=>{
             e.preventDefault()//这里是屏蔽JS的事件冒泡，我不屏蔽冒泡也没感觉哪里有差别。
 

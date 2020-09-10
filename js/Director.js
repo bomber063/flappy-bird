@@ -38,6 +38,7 @@ export class Director{
         this.dataStore.get('birds').time = 0;//这里还需要注意时间要清零，不然会一直做自由落体运动，点击之后小鸟上飞，那么不应该继续下落，如果继续下落速度会越来越大。所以要置零。
     }
     run(){
+        // console.log(this.dataStore.get('birds').birdsY[0]>=this.dataStore.get('land').y);
         if(!this.isGameOver){//增加一个确定游戏开始的变量值isGameOver
             // console.log(this.isGameOver)
             //因为在Main.js中已经通过init函数里面的this.dataStore.put('background',new BackGround()),把background图片设置了，那么就可以使用get('background')方法获取到
@@ -91,11 +92,28 @@ export class Director{
             this.dataStore.get('land').draw();
             this.dataStore.get('birds').draw();
 
+            // if(this.dataStore.get('birds').birdsY[0]+this.dataStore.get('birds').clippingY[0]+this.dataStore.get('birds').clippingHeight[0]>=this.dataStore.get('land').y){//这个判断要写到下一次动画requestAnimationFrame循环之前，不然，会一直循环到不了下面的代码。
+            //     console.log('游戏结束1');
+            //     // this.isGameOver=!this.isGameOver;
+            // }
+
+            if(this.dataStore.get('birds').birdsY[0]+this.dataStore.get('birds').clippingY[0]+this.dataStore.get('birds').clippingHeight[0]>this.dataStore.get('land').y){//这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，所以写到if(!this.isGameOver)里面比较好
+                // console.log('游戏结束1');
+                // console.log(this.dataStore.get('birds').birdsY[0])
+                // console.log(this.dataStore.get('land').y)
+                // console.log(this.dataStore.get('birds').birdsY[0]<this.dataStore.get('land').y)
+                this.isGameOver=!this.isGameOver;
+            }
             let timer=requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
             // let timer=setTimeout(()=>this.run(),1000)//用箭头函数的时候this是外面的this
             // let timer=setInterval(()=>this.run(),0)//用箭头函数的时候this是外面的this
             this.dataStore.put('timer',timer)
         }
+
+        // console.log(this.dataStore.get('birds').birdsY[0])
+        // console.log(this.dataStore.get('land').y)
+        // if(this.dataStore.get('birds'))
+        //     window.innerHeight-image.height
         else{
             console.log('游戏结束')
             cancelAnimationFrame(this.dataStore.get('timer'));//让动画停止。

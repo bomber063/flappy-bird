@@ -2265,8 +2265,150 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
     }
 ```
 * 目前小鸟可以穿过一切东西，还可以横行无阻的飞，这是不合适的。还需要模拟出来碰撞关系，小鸟碰撞到铅笔或者地板的时候让游戏结束。
-## 小鸟碰撞到铅笔或者地板的时候让游戏结束。
-* 
+## 小鸟碰撞到铅笔或者地板的时候让游戏结束
+### 我自己写的碰撞代码
+* 在if和else这里遇到点困难，测试了一段时间，具体看后面的if...else的说明。
+* 主要在Director.js类的run方法中第一个`if(!this.isGameOver)`中写下一个if判断代码。这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，所以写到`if(!this.isGameOver)`里面比较好。
+```js
+        if(!this.isGameOver){//增加一个确定游戏开始的变量值isGameOver
+            // ...前面的代码省略
+            if(this.dataStore.get('birds').birdsY[0]+this.dataStore.get('birds').clippingY[0]+this.dataStore.get('birds').clippingHeight[0]>this.dataStore.get('land').y){//这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，所以写到if(!this.isGameOver)里面比较好
+
+                this.isGameOver=!this.isGameOver;
+            }
+            let timer=requestAnimationFrame(()=>this.run())
+            this.dataStore.put('timer',timer)
+        }
+```
+## if和else之间不可以打分号和别的代码
+* 下面的if和else之间有代码会报错
+```js
+let a=1
+if(a===1){
+  console.log(1)
+}
+console.log(2)
+else{
+  console.log(3)
+}
+```
+* if和else之间有分号也报错
+```js
+let a=1
+if(a===1){
+  console.log(1)
+};
+// console.log(2)
+else{
+  console.log(3)
+}
+```
+* 下面的代码不报错
+```js
+let a=1
+if(a===1){
+  console.log(1)
+}
+// console.log(2)
+else{
+  console.log(3)
+}
+```
+## if...if...else和if...else if...else
+### 多个if，最后一个else
+* 多个if，最后一个是else，那么最后一个if和else会选择一个，前面的if都会执行.比如前面的if都是true，最后一个if是false.那么最后一个if不执行，但是else会执行。
+```js
+if(true){
+  console.log(0)
+}
+if(true){
+  console.log(1)
+}
+if(false){
+  console.log(2)
+}
+else{
+  console.log(3)
+}
+//打出0 1 3
+```
+* 前面的if都会执行.比如前面的if都是true，最后一个if也是true.那么else不会执行。
+```js
+if(true){
+  console.log(0)
+}
+if(true){
+  console.log(1)
+}
+if(true){
+  console.log(2)
+}
+else{
+  console.log(3)
+}
+//打出0 1 2
+```
+### if，多个else if，然后else
+* 只要前面有一个是true就停止后面的代码执行
+```js
+if(true){
+  console.log(0)
+}
+else if(true){
+  console.log(1)
+}
+else if(true){
+  console.log(2)
+}
+else{
+  console.log(3)
+}
+//打出0
+
+if(false){
+  console.log(0)
+}
+else if(true){
+  console.log(1)
+}
+else if(true){
+  console.log(2)
+}
+else{
+  console.log(3)
+}
+//打出1
+
+if(false){
+  console.log(0)
+}
+else if(false){
+  console.log(1)
+}
+else if(true){
+  console.log(2)
+}
+else{
+  console.log(3)
+}
+//打出2
+```
+* 前面的都是false，才会执行else的代码
+```js
+if(false){
+  console.log(0)
+}
+else if(false){
+  console.log(1)
+}
+else if(false){
+  console.log(2)
+}
+else{
+  console.log(3)
+}
+//打出3
+```
 ## 图片还可以做一张来代表多张图片
 * 我们这里做了7张图片，然后分别去获取。
 * **我们还可以做一张图片（可以用PS或者自带的图形软件去拼接），然后放在一张图片上的不同位置，也就是不同坐标下，然后通过坐标来裁剪去获取你需要的这张大图中的某些小图部分进行渲染**。这样就只需要加载一张图片，然后再这一张图片上渲染就OK了。**这样就不需要Resources.js和ResourceLoader.js这两个类了**。可以追求极致的性质和用户体验。但是这样做有一个**缺点**:
