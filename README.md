@@ -2266,7 +2266,7 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
 ```
 * 目前小鸟可以穿过一切东西，还可以横行无阻的飞，这是不合适的。还需要模拟出来碰撞关系，小鸟碰撞到铅笔或者地板的时候让游戏结束。
 ## 小鸟碰撞到铅笔或者地板的时候让游戏结束
-### 我自己写的碰撞代码
+### 我自己写的碰撞地板代码
 * 在if和else这里遇到点困难，测试了一段时间，主要还是不熟悉。**具体看后面的if...else的说明**。
 * 主要在Director.js类的run方法中第一个`if(!this.isGameOver)`中写下一个if判断代码。**这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，**所以写到`if(!this.isGameOver)`里面比较好。
 ```js
@@ -2300,6 +2300,162 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
             this.check();//每秒刷新60次，说明每秒会检查60次。
             // ...下面的代码省略
         }
+```
+### 我自己写的碰撞铅笔代码
+* 我没有写出来
+### 老师的碰撞铅笔代码
+* Birds.js类中不需要公开的变量可以直接声明,主要在constructor里面
+* 比如`this.birdY`修改为`const birdY`，不需要对外公布，不是共有public变量，用const声明就相当于不对外公布，就是私有的private私有量变量.只有Birds.js这个类可以访问，外面的都不可以访问到。
+```js
+    constructor(){
+        const image=Sprite.getImage('birds');
+        super(image,0,0,image.width,image.height,
+            0,0,image.width,image.height);
+
+        this.clippingX=[
+            9,
+            9+34+18,
+            9+34+18+34+18
+        ];
+        this.clippingY=[10,10,10];
+        this.clippingWidth=[34,34,34];
+        this.clippingHeight=[24,24,24];
+        let birdX;//修改为私有变量
+        if(window.innerWidth<=375){
+            birdX=window.innerWidth/4;
+        }
+        if(window.innerWidth>375){
+            birdX=this.srcW/4
+        }
+        this.birdsX=[birdX,birdX,birdX];
+        const birdY=window.innerHeight/2;//由this.birdY修改为const birdY，不需要对外公布，不是共有public变量，用const声明就相当于不对外公布，就是私有的private私有量变量，只有Birds.js这个类可以访问，外面的都不可以访问到。
+        this.birdsY=[birdY,birdY,birdY];
+        const birdWidth=34;//修改为私有变量
+        this.birdsWidth=[birdWidth,birdWidth,birdWidth];
+        const birdHeight=24;//修改为私有变量
+        this.birdsHeight=[birdHeight,birdHeight,birdHeight];
+
+
+        this.y=[birdY,birdY,birdY];
+        this.index=0;
+        this.count=0;
+        this.time=0;
+    }
+```
+* 创建小鸟的模型，`top: birds.birdsY[0]`这里老师的代码是`birds.y[0]`，`birds.birdsY[0]`才是实时的y方向的坐标。
+* 具体问题也可以看这里——[至于上铅笔有时戳不死小鸟的问题，有个不成熟的建议](https://coding.imooc.com/learn/questiondetail/133496.html)
+```js
+        const birdsBorder={
+            top: birds.birdsY[0],//这里老师的代码是birds.y[0]，birds.birdsY[0]才是实时的y方向的坐标。
+            bottom:birds.y[0]+birds.birdsHeight[0],
+            left:birds.birdsX[0],
+            right:birds.birdsX[0]+birds.birdsWidth[0]
+        };
+```
+* 创建铅笔的模型
+```js
+        const length=pencils.length;
+        for(let i=0;i<length;i++){
+            const pencil=pencils[i];
+            const pencilBorder={
+                top:pencil.y,
+                bottom:pencil.y+pencil.height,
+                left:pencil.x,
+                right:pencil.x+pencil.weight
+            };
+        }
+```
+#### 与铅笔的碰撞事件（这个逻辑我想了好久）
+* 这里的主要的逻辑在于下面的isStrike函数代码
+```js
+    static isStrike(bird,pencil){
+        let s=false;
+        if(//如下的情况就是每个地方都可以飞，所以是或的关系，但是如果到了不是下面四种情况的地方就是会停止游戏。那么下面四种情况都是false，那么s=false。那么return !s就是true。然后下面的代码if (Director.isStrike(birdsBorder, pencilBorder,i))就是true去触发游戏停止。
+            bird.top > pencil.bottom || //小鸟顶部大于铅笔底部
+            bird.bottom < pencil.top || //小鸟底部小于铅笔顶部
+            bird.right < pencil.left || //小鸟右边小于铅笔左边
+            bird.left > pencil.right)   //小鸟左边大于铅笔右边
+        { //小鸟左边大于铅笔右边
+            s=true;
+        }
+        return !s;
+
+    };
+```
+* 首先是上面的if语句里面的s=true如果**不触发**,**也就是四种逻辑都是false**。那么游戏就会停止。因为`return`的是`!s`。也就`return`的是`true`。那么下面的代码`Director.isStrike(birdsBorder, pencilBorder)`就会触发导致游戏停止。所以if语句里面的`s=true`如果**触发**，游戏就不会停止。
+```js
+    if (Director.isStrike(birdsBorder, pencilBorder)) {
+                    console.log('撞到铅笔了');
+                    this.isGameOver = true;
+                    return;
+                }
+```
+* 四个代码分析
+    * `bird.top > pencil.bottom`，小鸟的顶部会针对上下两只铅笔的`pencil.bottom`，因为是或的关系，那么就只需要大于最小值的铅笔对应的`pencil.bottom`,那么肯定就是上面的铅笔对应的y值小。
+    * `bird.bottom < pencil.top`，小鸟的底部会针对上下两只铅笔的`pencil.top`，因为是或的关系，那么就只需要小于最大值的铅笔对应的`pencil.bottom`,那么肯定就是下面的铅笔对应的y值最大。
+    * `bird.right < pencil.left`,就是小鸟的右边要小于上下铅笔的左侧。铅笔左侧以左的位置。
+    * `bird.left > pencil.right`,就是小鸟的左侧要大于上下铅笔的右侧。铅笔右侧以右的位置。
+* 用一个图拉表示更形象,红色矩形圈起来的地方就是**不触发停止的地方**。
+![wUaKUI.png](https://s1.ax1x.com/2020/09/12/wUaKUI.png)
+* 其他人的回答说明
+    1. [isStrike（） 为什么return !s 而不是s？逻辑怎么反了？既然这样为什么不直接初始化 s=true](https://coding.imooc.com/learn/questiondetail/46259.html)
+    2. [游戏结束判断问题](https://coding.imooc.com/learn/questiondetail/43124.html)
+
+* 比较完成代码
+```js
+//..前面的代码省略
+    //判断小鸟是否和铅笔撞击
+    static isStrike(bird,pencil){
+        let s=false;
+        if(//如下的情况就是每个地方都可以飞，所以是或的关系，但是如果到了不是下面四种情况的地方就是会停止游戏。那么下面四种情况都是false，那么s=false。那么return !s就是true。然后下面的代码if (Director.isStrike(birdsBorder, pencilBorder,i))就是true去触发游戏停止。
+            bird.top > pencil.bottom || //小鸟顶部大于铅笔底部
+            bird.bottom < pencil.top || //小鸟底部小于铅笔顶部
+            bird.right < pencil.left || //小鸟右边小于铅笔左边
+            bird.left > pencil.right)   //小鸟左边大于铅笔右边
+        { //小鸟左边大于铅笔右边
+            s=true;
+        }
+        return !s;
+
+    };
+
+    //判断小鸟是否撞击地板和铅笔
+    check() {
+        const birds = this.dataStore.get('birds');
+        const land = this.dataStore.get('land');
+        const pencils = this.dataStore.get('pencils');
+        // console.log(pencils[0].x,birds.birdsX[0]+birds.birdsWidth[0]+2*birds.clippingWidth[0])
+        //地板的撞击判断
+        if (birds.birdsY[0] + birds.birdsHeight[0] > land.y) {//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
+            console.log('小鸟撞击地板蜡');
+            this.isGameOver = true;
+            return;//如果return下面没有代码这里会高亮提醒你，这里的return是多余的，如果return下面有代码就不会说是多余的了。
+        }
+        //小鸟的边框模式
+        const birdsBorder = {
+            top: birds.birdsY[0],//这里老师的代码是birds.y[0]，birds.birdsY[0]才是实时的y方向的坐标。
+            bottom: birds.birdsY[0] + birds.birdsHeight[0],
+            left: birds.birdsX[0],
+            right: birds.birdsX[0] + birds.birdsWidth[0]
+        };
+
+        const length = pencils.length;
+        for (let i = 0; i < length; i++) {//这里其实不用循环i为2和3的时候，因为鸟只会触碰到i是0和1的铅笔。
+            const pencil = pencils[i];
+            const pencilBorder = {
+                top: pencil.y,
+                bottom: pencil.y + pencil.height,
+                left: pencil.x,
+                right: pencil.x + pencil.width
+            };
+
+            if (Director.isStrike(birdsBorder, pencilBorder)) {
+                console.log('撞到铅笔了');
+                this.isGameOver = true;
+                return;
+            }
+        }
+//...后面的代码省略
 ```
 ## if和else之间不可以打分号和别的代码
 * 下面的if和else之间**有代码会报错**

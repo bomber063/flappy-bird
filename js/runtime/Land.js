@@ -27,7 +27,7 @@ export class Land extends Sprite{
         // }
         // if(Math.abs(this.srcW-window.innerWidth)>this.srcW/3){
         //     console.log('this.srcW-window.innerWidth)<this.srcW')
-        if(window.innerWidth<375){
+        if(window.innerWidth<=375){
             if(this.landX>Math.abs(this.srcW-window.innerWidth)){//增加一个判断，判断如果移动的像素超过图片和window的宽度的差值，就重置为0，这样就可以无限循环左移了。这里我增加绝对值，是因为手机宽度和电脑宽度导致结果有负数
                 this.landX=0
             }

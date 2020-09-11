@@ -19,22 +19,24 @@ export class Birds extends Sprite{
         this.clippingY=[10,10,10];//三只小鸟距离上边距都是10
         this.clippingWidth=[34,34,34];//三只小鸟的宽度都是34
         this.clippingHeight=[24,24,24];//三只小鸟的高度都是24
+        let birdX;
         if(window.innerWidth<=375){
-            this.birdX=window.innerWidth/4;//一只小鸟的初始x位置为window内部的4分之一的位置，也就是偏左方的位置。
+            birdX=window.innerWidth/4;//一只小鸟的初始x位置为window内部的4分之一的位置，也就是偏左方的位置。
         }
         if(window.innerWidth>375){//兼容window大宽度
-            this.birdX=this.srcW/4
+            birdX=this.srcW/4
         }
-        this.birdsX=[this.birdX,this.birdX,this.birdX];//三只小鸟的x位置统一在一个数组里面
-        this.birdY=window.innerHeight/2;//小鸟的初始y位置居中
-        this.birdsY=[this.birdY,this.birdY,this.birdY];//三只小鸟的y位置统一在一个数组里面
-        this.birdWidth=34;//小鸟的宽度为34
-        this.birdsWidth=[this.birdWidth,this.birdWidth,this.birdWidth];//三只小鸟的宽度统一放到数组里面
-        this.birdHeight=24;//小鸟的高度为24
-        this.birdsHeight=[this.birdHeight,this.birdHeight,this.birdHeight];//三只小鸟的高度统一放到数组里面
+        this.birdsX=[birdX,birdX,birdX];//三只小鸟的x位置统一在一个数组里面
+        const birdY=window.innerHeight/2;//由this.birdY修改为const birdY，不需要对外公布，不是共有public变量，用const声明就相当于不对外公布，就是私有的private私有量变量
+        this.birdsY=[birdY,birdY,birdY];//三只小鸟的y位置统一在一个数组里面
+        const birdWidth=34;//小鸟的宽度为34
+        this.birdsWidth=[birdWidth,birdWidth,birdWidth];//三只小鸟的宽度统一放到数组里面
+        const birdHeight=24;//小鸟的高度为24
+        this.birdsHeight=[birdHeight,birdHeight,birdHeight];//三只小鸟的高度统一放到数组里面
 
 
-        this.y=[this.birdY,this.birdY,this.birdY];//跟前面的this.birdsY一样,但是这里的this.y是基类Sprite.js中的y
+        this.y=[birdY,birdY,birdY];//跟前面的this.birdsY一样,但是这里的this.y是基类Sprite.js中的y
+        // console.log(this.y)
         this.index=0;//脚标必须为整数
         this.count=0;//这个是用来循环小鸟个数的，必须为整数
         this.time=0;

@@ -6,8 +6,6 @@ import {DownPencil} from "./runtime/DownPencil.js";
 
 export class Director{
 
-
-
     static getInstance(){
         //单例模式就是如果不存在就创建
         if(!Director.instance){
@@ -38,15 +36,84 @@ export class Director{
         this.dataStore.get('birds').time = 0;//这里还需要注意时间要清零，不然会一直做自由落体运动，点击之后小鸟上飞，那么不应该继续下落，如果继续下落速度会越来越大。所以要置零。
     }
 
+    //判断小鸟是否和铅笔撞击
+    static isStrike(bird,pencil,i){
+        console.log(bird.top > pencil.bottom,'bird.top > pencil.bottom');
+        console.log(bird.bottom < pencil.top,'bird.bottom < pencil.top');
+        console.log(bird.right < pencil.left,'bird.right < pencil.left');
+        console.log(bird.left > pencil.right,'bird.left > pencil.right');
+        console.log(i);
+        let s=false;
+        if(//如下的情况就是每个地方都可以飞，所以是或的关系，但是如果到了不是下面四种情况的地方就是会停止游戏。那么下面四种情况都是false，那么s=false。那么return !s就是true。然后下面的代码if (Director.isStrike(birdsBorder, pencilBorder,i))就是true去触发游戏停止。
+            bird.top > pencil.bottom || //小鸟顶部大于铅笔底部
+            bird.bottom < pencil.top || //小鸟底部小于铅笔顶部
+            bird.right < pencil.left || //小鸟右边小于铅笔左边
+            bird.left > pencil.right)   //小鸟左边大于铅笔右边
+        { //小鸟左边大于铅笔右边
+            s=true;
+        }
+        // console.log(bird.top < pencil.bottom,'bird.top < pencil.bottom');
+        // console.log(bird.left,'bird.left');
+        // console.log(pencil.bottom,'pencil.bottom');
+        //
+        // console.log(bird.bottom > pencil.top,'bird.bottom > pencil.top');
+        // console.log(bird.right > pencil.left,'bird.right > pencil.left');
+        // console.log(bird.left < pencil.right,'bird.left < pencil.right');
+        // if( !(bird.top < pencil.bottom &&
+        //     bird.bottom > pencil.top &&
+        //     bird.right < pencil.left &&
+        //     bird.left > pencil.right)){
+        //     s=true;
+        // }
+        return !s;
+
+    };
+
     //判断小鸟是否撞击地板和铅笔
-    check(){
-        const birds=this.dataStore.get('birds');
-        const land=this.dataStore.get('land');
+    check() {
+        const birds = this.dataStore.get('birds');
+        const land = this.dataStore.get('land');
+        const pencils = this.dataStore.get('pencils');
+        // console.log(pencils[0].x,birds.birdsX[0]+birds.birdsWidth[0]+2*birds.clippingWidth[0])
         //地板的撞击判断
-        if(birds.birdsY[0]+birds.birdsHeight[0]>land.y){//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
+        if (birds.birdsY[0] + birds.birdsHeight[0] > land.y) {//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
             console.log('小鸟撞击地板蜡');
-            this.isGameOver=true;
+            this.isGameOver = true;
             return;//如果return下面没有代码这里会高亮提醒你，这里的return是多余的，如果return下面有代码就不会说是多余的了。
+        }
+        // //铅笔撞击判断
+        // if(pencils[0].y+pencils[0].height>birds.birdsY[0]+birds.clippingY[0]&&pencils[0].x<birds.birdsX[0]+birds.birdsWidth[0]&&pencils[0].x+pencils[0].width<birds.birdsX[0]){
+        //     console.log(1);
+        //     this.isGameOver=true;
+        // };
+        // // if(pencils[2].y>birds.birdsY[0]+birds.clippingY[0]&&pencils[2].x<birds.birdsX[0]&&birds.birdsX[0]+birds.clippingWidth[0]<pencils[2].x){
+        // //
+        // // };
+        //小鸟的边框模式
+        const birdsBorder = {
+            top: birds.birdsY[0],//这里老师的代码是birds.y[0]，birds.birdsY[0]才是实时的y方向的坐标。
+            bottom: birds.birdsY[0] + birds.birdsHeight[0],
+            left: birds.birdsX[0],
+            right: birds.birdsX[0] + birds.birdsWidth[0]
+        };
+
+        const length = pencils.length;
+        for (let i = 0; i < length; i++) {//这里其实不用循环i为2和3的时候，因为鸟只会触碰到i是0和1的铅笔。
+            const pencil = pencils[i];
+            const pencilBorder = {
+                top: pencil.y,
+                bottom: pencil.y + pencil.height,
+                left: pencil.x,
+                right: pencil.x + pencil.width
+            };
+            // console.log(pencilBorder);
+            // console.log('分割线'+i);
+
+            if (Director.isStrike(birdsBorder, pencilBorder,i)) {
+                console.log('撞到铅笔了');
+                this.isGameOver = true;
+                return;
+            }
         }
     }
 
@@ -59,10 +126,10 @@ export class Director{
             // const backgroundSprite=this.dataStore.get('background');
             // backgroundSprite.draw();
             this.dataStore.get('background').draw();
-            const pencils=this.dataStore.get('pencils')
+            const pencils=this.dataStore.get('pencils');
 
 
-            if(window.innerWidth<375){
+            if(window.innerWidth<=375){
                 if(pencils[0].x+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
                     pencils.splice(0,1)
                     pencils.splice(0,1)//这里用下面的shift也是一样的效果
