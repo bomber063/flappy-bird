@@ -37,7 +37,21 @@ export class Director{
         }
         this.dataStore.get('birds').time = 0;//这里还需要注意时间要清零，不然会一直做自由落体运动，点击之后小鸟上飞，那么不应该继续下落，如果继续下落速度会越来越大。所以要置零。
     }
+
+    //判断小鸟是否撞击地板和铅笔
+    check(){
+        const birds=this.dataStore.get('birds');
+        const land=this.dataStore.get('land');
+        //地板的撞击判断
+        if(birds.birdsY[0]+birds.birdsHeight[0]>land.y){//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
+            console.log('小鸟撞击地板蜡');
+            this.isGameOver=true;
+            return;//如果return下面没有代码这里会高亮提醒你，这里的return是多余的，如果return下面有代码就不会说是多余的了。
+        }
+    }
+
     run(){
+        this.check();//每秒刷新60次，说明每秒会检查60次。
         // console.log(this.dataStore.get('birds').birdsY[0]>=this.dataStore.get('land').y);
         if(!this.isGameOver){//增加一个确定游戏开始的变量值isGameOver
             // console.log(this.isGameOver)
@@ -97,13 +111,13 @@ export class Director{
             //     // this.isGameOver=!this.isGameOver;
             // }
 
-            if(this.dataStore.get('birds').birdsY[0]+this.dataStore.get('birds').clippingY[0]+this.dataStore.get('birds').clippingHeight[0]>this.dataStore.get('land').y){//这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，所以写到if(!this.isGameOver)里面比较好
-                // console.log('游戏结束1');
-                // console.log(this.dataStore.get('birds').birdsY[0])
-                // console.log(this.dataStore.get('land').y)
-                // console.log(this.dataStore.get('birds').birdsY[0]<this.dataStore.get('land').y)
-                this.isGameOver=!this.isGameOver;
-            }
+            // if(this.dataStore.get('birds').birdsY[0]+this.dataStore.get('birds').clippingY[0]+this.dataStore.get('birds').clippingHeight[0]>this.dataStore.get('land').y){//这个判断如果写到外面就会和最后的else选择一个执行，另一个不执行。具体看README中的说明，所以写到if(!this.isGameOver)里面比较好
+            //     // console.log('游戏结束1');
+            //     // console.log(this.dataStore.get('birds').birdsY[0])
+            //     // console.log(this.dataStore.get('land').y)
+            //     // console.log(this.dataStore.get('birds').birdsY[0]<this.dataStore.get('land').y)
+            //     this.isGameOver=!this.isGameOver;
+            // }
             let timer=requestAnimationFrame(()=>this.run())//用箭头函数的时候this是外面的this
             // let timer=setTimeout(()=>this.run(),1000)//用箭头函数的时候this是外面的this
             // let timer=setInterval(()=>this.run(),0)//用箭头函数的时候this是外面的this

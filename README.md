@@ -2280,6 +2280,27 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
             this.dataStore.put('timer',timer)
         }
 ```
+### 结合老师的是否撞击地板代码查漏补缺
+* 老师的代码主要还是在Director.js类中增加了一个check方法。然后再run方法中使用`this.check()`即可。
+* 这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了。
+* 把变量提取出来作为一个变量
+```js
+    //判断小鸟是否撞击地板和铅笔
+    check(){
+        const birds=this.dataStore.get('birds');
+        const land=this.dataStore.get('land');
+        //地板的撞击判断
+        if(birds.birdsY[0]+birds.birdsHeight[0]>land.y){//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
+            console.log('小鸟撞击地板蜡');
+            this.isGameOver=true;
+            return;//如果return下面没有代码这里会高亮提醒你，这里的return是多余的，如果return下面有代码就不会说是多余的了。
+        }
+    }
+        run(){
+            this.check();//每秒刷新60次，说明每秒会检查60次。
+            // ...下面的代码省略
+        }
+```
 ## if和else之间不可以打分号和别的代码
 * 下面的if和else之间**有代码会报错**
 ```js
