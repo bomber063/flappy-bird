@@ -69,8 +69,15 @@ export class Director{
 
     };
 
-    //判断小鸟是否撞击地板和铅笔
+    //判断小鸟是否撞击地板和铅笔，还有顶部
     check() {
+
+        if(this.dataStore.get('birds').birdsY[0]<0){//判断小鸟是否撞击顶部
+            console.log('撞到顶部了');
+            this.isGameOver = true;
+            return;
+        }
+
         const birds = this.dataStore.get('birds');
         const land = this.dataStore.get('land');
         const pencils = this.dataStore.get('pencils');
@@ -98,21 +105,46 @@ export class Director{
         };
 
         const length = pencils.length;
-        for (let i = 0; i < length; i++) {//这里其实不用循环i为2和3的时候，因为鸟只会触碰到i是0和1的铅笔。
-            const pencil = pencils[i];
-            const pencilBorder = {
-                top: pencil.y,
-                bottom: pencil.y + pencil.height,
-                left: pencil.x,
-                right: pencil.x + pencil.width
-            };
-            // console.log(pencilBorder);
-            // console.log('分割线'+i);
+        let pencil;
+        let pencilBorder;
 
-            if (Director.isStrike(birdsBorder, pencilBorder,i)) {
-                console.log('撞到铅笔了');
-                this.isGameOver = true;
-                return;
+        if(window.innerWidth<=375){
+            for (let i = 0; i < length; i++) {//这里其实不用循环i为2和3的时候，因为鸟只会触碰到i是0和1的铅笔。
+                pencil = pencils[i];
+                pencilBorder = {
+                    top: pencil.y,
+                    bottom: pencil.y + pencil.height,
+                    left: pencil.x,
+                    right: pencil.x + pencil.width
+                };
+                // console.log(pencilBorder);
+                // console.log('分割线'+i);
+
+                if (Director.isStrike(birdsBorder, pencilBorder,i)) {
+                    console.log('撞到铅笔了');
+                    this.isGameOver = true;
+                    return;
+                }
+            }
+        }
+
+        if(window.innerWidth>375){//如果是大于375，要把pencil.x修改为pencil.x-(window.innerWidth-375)
+            for (let i = 0; i < length; i++) {//这里其实不用循环i为2和3的时候，因为鸟只会触碰到i是0和1的铅笔。
+                pencil = pencils[i];
+                pencilBorder = {
+                    top: pencil.y,
+                    bottom: pencil.y + pencil.height,
+                    left: pencil.x-(window.innerWidth-375),
+                    right: pencil.x-(window.innerWidth-375) + pencil.width
+                };
+                // console.log(pencilBorder);
+                // console.log('分割线'+i);
+
+                if (Director.isStrike(birdsBorder, pencilBorder,i)) {
+                    console.log('撞到铅笔了');
+                    this.isGameOver = true;
+                    return;
+                }
             }
         }
     }

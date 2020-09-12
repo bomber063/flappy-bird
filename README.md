@@ -2342,7 +2342,7 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
         this.time=0;
     }
 ```
-* 创建小鸟的模型，`top: birds.birdsY[0]`这里老师的代码是`birds.y[0]`，`birds.birdsY[0]`才是实时的y方向的坐标。
+* 创建小鸟的模型，`top: birds.birdsY[0]`这里老师的代码是`birds.y[0]`，`birds.birdsY[0]`才是实时的y方向的坐标。**这里是针对老师代码的优化，如果不优化，会导致触发上铅笔底部的时候会延迟触发或者不触发**
 * 具体问题也可以看这里——[至于上铅笔有时戳不死小鸟的问题，有个不成熟的建议](https://coding.imooc.com/learn/questiondetail/133496.html)
 ```js
         const birdsBorder={
@@ -2456,6 +2456,38 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
             }
         }
 //...后面的代码省略
+```
+### 增加大于375的浏览器兼容。小鸟碰撞顶部停止
+* 都在导演类Director.js中修改。
+* 增加大于375的浏览器兼容，**如果是大于375，要把`pencil.x`修改为`pencil.x-(window.innerWidth-375)`**
+```js
+        if(window.innerWidth>375){//如果是大于375，要把pencil.x修改为pencil.x-(window.innerWidth-375)
+            for (let i = 0; i < length; i++) {//这里其实不用循环i为2和3的时候，因为鸟只会触碰到i是0和1的铅笔。
+                pencil = pencils[i];
+                pencilBorder = {
+                    top: pencil.y,
+                    bottom: pencil.y + pencil.height,
+                    left: pencil.x-(window.innerWidth-375),
+                    right: pencil.x-(window.innerWidth-375) + pencil.width
+                };
+                // console.log(pencilBorder);
+                // console.log('分割线'+i);
+
+                if (Director.isStrike(birdsBorder, pencilBorder,i)) {
+                    console.log('撞到铅笔了');
+                    this.isGameOver = true;
+                    return;
+                }
+            }
+        }
+```
+* 增加小鸟碰撞顶部停止游戏
+```js
+        if(this.dataStore.get('birds').birdsY[0]<0){//判断小鸟是否撞击顶部
+            console.log('撞到顶部了');
+            this.isGameOver = true;
+            return;
+        }
 ```
 ## if和else之间不可以打分号和别的代码
 * 下面的if和else之间**有代码会报错**
