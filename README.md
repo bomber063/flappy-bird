@@ -2558,6 +2558,76 @@ export class StartButton extends Sprite{
             this.dataStore.destroy()//把所有精灵置空，保证内存是清零的。对我们的性能和内存而言都是一个释放。如果是后端不考虑内存那么服务端可能会爆掉。
         }
 ```
+## 小游戏计分器逻辑实现
+* 用到的API:
+    1. [CanvasRenderingContext2D.fillText()](https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/fillText),是 Canvas 2D API 在 (x, y)位置**填充文本**的方法。如果选项的第四个参数提供了最大宽度，文本会进行缩放以适应最大宽度
+    2. [CanvasRenderingContext2D.font](https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/font), 是 Canvas 2D API 描述绘制文字时，当前**字体样式**的属性。 使用和 CSS font 规范相同的字符串值。
+    3. [CanvasRenderingContext2D.fillStyle](https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/fillStyle),是Canvas 2D API 使用**内部方式描述颜色和样式**的属性。默认值是 #000 （黑色）。
+* 如果在webStorm中可以通过左边的颜色矩形直接选择各种颜色。
+* 创建Score.js计分类，**其中`this.isScore=true;`,这个我没有想到，它是用来防止canvas刷新太快导致分数增加太快而设置的**
+
+```js
+//计分器类
+import {DataStore} from "../base/DataStore.js";
+
+export class Score {
+    constructor() {
+        this.ctx = DataStore.getInstance().ctx;
+        this.scoreNumber = 0;
+        this.isScore=true;//这个我没有想到，它是用来防止canvas刷新太快导致分数增加太快而设置的
+    }
+
+    draw() {
+        this.ctx.font = '25px Arial';
+        this.ctx.fillStyle = '#ff7b82';//这里在webStorm中可以通过左边的颜色矩形直接选择各种颜色。
+        this.ctx.fillText(
+            '分数'+this.scoreNumber,
+            window.innerWidth/2-20,
+            window.innerHeight/18,
+            1000//这个是可选参数，最大宽度。
+        )
+    }
+}
+```
+* 在Main.js中存入Score.js类的这个组件内容
+```js
+    init(){
+        //首先重置游戏是没有结束的
+        this.director.isGameOver=false;
+        this.dataStore
+            .put('pencils',[])
+            .put('background',BackGround)
+            .put('land',Land)
+            .put('birds',Birds)
+            .put('score',Score)//增加分数的类存入到dataScore中
+            .put('startButton',StartButton);
+            this.registerEvent();
+    }
+```
+### 用变量控制加分速度的方式我没有想到
+* 在导演类Director.js中取出分数类Score.js
+```js
+        const score=this.dataStore.get('score');
+```
+* 在导演类中增加加分逻辑。
+* `if(birds.birdsX[0]>pencils[0].x+pencils[0].width&&score.isScore===true)`,小鸟左边大于铅笔右边并且变量isScore是true的时候才加分
+* **`score.isScore=false`,它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=false就无法进入这个if**。
+* `if(birds.birdsX[0]<=pencils[0].x+pencils[0].width===score.isScore===false)`,小鸟左边小于铅笔右边，使变量isScore变成true
+* `score.isScore=true;`它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=true就无法进入这个if
+* 因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
+```js
+
+        //加分逻辑
+        if(birds.birdsX[0]>pencils[0].x+pencils[0].width&&score.isScore===true){//小鸟左边大于铅笔右边并且变量isScore是true的时候才加分
+            score.isScore=false;//它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=false就无法进入这个if
+            score.scoreNumber++;
+                //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
+        }
+        if(birds.birdsX[0]<=pencils[0].x+pencils[0].width===score.isScore===false){//小鸟左边小于铅笔右边，使变量isScore变成true
+                score.isScore=true;//它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=true就无法进入这个if
+                //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
+        }
+```
 ## if和else之间不可以打分号和别的代码
 * 下面的if和else之间**有代码会报错**
 ```js

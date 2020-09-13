@@ -3,6 +3,7 @@ import {DataStore} from "./base/DataStore.js";
 import {BackGround} from "./runtime/BackGround.js";
 import {UpPencil} from "./runtime/UpPencil.js";
 import {DownPencil} from "./runtime/DownPencil.js";
+import {Score} from "./player/Score.js";
 
 export class Director{
 
@@ -82,6 +83,7 @@ export class Director{
         const birds = this.dataStore.get('birds');
         const land = this.dataStore.get('land');
         const pencils = this.dataStore.get('pencils');
+        const score=this.dataStore.get('score');
         // console.log(pencils[0].x,birds.birdsX[0]+birds.birdsWidth[0]+2*birds.clippingWidth[0])
         //地板的撞击判断
         if (birds.birdsY[0] + birds.birdsHeight[0] > land.y) {//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
@@ -151,6 +153,19 @@ export class Director{
                 }
             }
         }
+
+        //加分逻辑
+        if(birds.birdsX[0]>pencils[0].x+pencils[0].width&&score.isScore===true){//小鸟左边大于铅笔右边并且变量isScore是true的时候才加分
+                console.log(1)
+            score.isScore=false;//它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=false就无法进入这个if
+            score.scoreNumber++;
+                //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
+        }
+        if(birds.birdsX[0]<=pencils[0].x+pencils[0].width===score.isScore===false){//小鸟左边小于铅笔右边，使变量isScore变成true
+                console.log(2);
+                score.isScore=true;//它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=true就无法进入这个if
+                //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
+        }
     }
 
     run(){
@@ -207,6 +222,7 @@ export class Director{
                 value.draw()
             });
             this.dataStore.get('land').draw();
+            this.dataStore.get('score').draw();
             this.dataStore.get('birds').draw();
 
             // if(this.dataStore.get('birds').birdsY[0]+this.dataStore.get('birds').clippingY[0]+this.dataStore.get('birds').clippingHeight[0]>=this.dataStore.get('land').y){//这个判断要写到下一次动画requestAnimationFrame循环之前，不然，会一直循环到不了下面的代码。
