@@ -2548,6 +2548,16 @@ export class StartButton extends Sprite{
         }
 }
 ```
+### 结合老师的按钮类代码思路优化代码
+* 前面在Director.js中增加取出这个StartButton,并在`this.isGameOver = true`之前用draw方法。**一共有4处，这里的代码我没有优化好**，其实只需要写一处即可。就是在`cancelAnimationFrame(this.dataStore.get('timer'))`之前使用即可。
+```js
+        else{
+            console.log('游戏结束')
+            this.dataStore.get('startButton').draw();
+            cancelAnimationFrame(this.dataStore.get('timer'));//让动画停止。
+            this.dataStore.destroy()//把所有精灵置空，保证内存是清零的。对我们的性能和内存而言都是一个释放。如果是后端不考虑内存那么服务端可能会爆掉。
+        }
+```
 ## if和else之间不可以打分号和别的代码
 * 下面的if和else之间**有代码会报错**
 ```js

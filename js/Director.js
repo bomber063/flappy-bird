@@ -74,7 +74,7 @@ export class Director{
 
         if(this.dataStore.get('birds').birdsY[0]<0){//判断小鸟是否撞击顶部
             console.log('撞到顶部了');
-            this.dataStore.get('startButton').draw();
+            // this.dataStore.get('startButton').draw();
             this.isGameOver = true;
             return;
         }
@@ -86,7 +86,7 @@ export class Director{
         //地板的撞击判断
         if (birds.birdsY[0] + birds.birdsHeight[0] > land.y) {//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
             console.log('小鸟撞击地板蜡');
-            this.dataStore.get('startButton').draw();
+            // this.dataStore.get('startButton').draw();
             this.isGameOver = true;
             return;//如果return下面没有代码这里会高亮提醒你，这里的return是多余的，如果return下面有代码就不会说是多余的了。
         }
@@ -125,7 +125,7 @@ export class Director{
                 if (Director.isStrike(birdsBorder, pencilBorder)) {
                     console.log('撞到铅笔了');
                     this.isGameOver = true;
-                    this.dataStore.get('startButton').draw();
+                    // this.dataStore.get('startButton').draw();
                     return;
                 }
             }
@@ -146,7 +146,7 @@ export class Director{
                 if (Director.isStrike(birdsBorder, pencilBorder,i)) {
                     console.log('撞到铅笔了');
                     this.isGameOver = true;
-                    this.dataStore.get('startButton').draw();
+                    // this.dataStore.get('startButton').draw();
                     return;
                 }
             }
@@ -233,6 +233,7 @@ export class Director{
         //     window.innerHeight-image.height
         else{
             console.log('游戏结束')
+            this.dataStore.get('startButton').draw();
             cancelAnimationFrame(this.dataStore.get('timer'));//让动画停止。
             this.dataStore.destroy()//把所有精灵置空，保证内存是清零的。对我们的性能和内存而言都是一个释放。如果是后端不考虑内存那么服务端可能会爆掉。
         }
