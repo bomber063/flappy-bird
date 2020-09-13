@@ -37,12 +37,12 @@ export class Director{
     }
 
     //判断小鸟是否和铅笔撞击
-    static isStrike(bird,pencil,i){
-        console.log(bird.top > pencil.bottom,'bird.top > pencil.bottom');
-        console.log(bird.bottom < pencil.top,'bird.bottom < pencil.top');
-        console.log(bird.right < pencil.left,'bird.right < pencil.left');
-        console.log(bird.left > pencil.right,'bird.left > pencil.right');
-        console.log(i);
+    static isStrike(bird,pencil){
+        // console.log(bird.top > pencil.bottom,'bird.top > pencil.bottom');
+        // console.log(bird.bottom < pencil.top,'bird.bottom < pencil.top');
+        // console.log(bird.right < pencil.left,'bird.right < pencil.left');
+        // console.log(bird.left > pencil.right,'bird.left > pencil.right');
+        // console.log(i);
         let s=false;
         if(//如下的情况就是每个地方都可以飞，所以是或的关系，但是如果到了不是下面四种情况的地方就是会停止游戏。那么下面四种情况都是false，那么s=false。那么return !s就是true。然后下面的代码if (Director.isStrike(birdsBorder, pencilBorder,i))就是true去触发游戏停止。
             bird.top > pencil.bottom || //小鸟顶部大于铅笔底部
@@ -74,6 +74,7 @@ export class Director{
 
         if(this.dataStore.get('birds').birdsY[0]<0){//判断小鸟是否撞击顶部
             console.log('撞到顶部了');
+            this.dataStore.get('startButton').draw();
             this.isGameOver = true;
             return;
         }
@@ -85,6 +86,7 @@ export class Director{
         //地板的撞击判断
         if (birds.birdsY[0] + birds.birdsHeight[0] > land.y) {//这里没有增加小鸟的下边距距离，可能这样更好吧如果增加了下边距距离可能没有触碰到地板就停止了
             console.log('小鸟撞击地板蜡');
+            this.dataStore.get('startButton').draw();
             this.isGameOver = true;
             return;//如果return下面没有代码这里会高亮提醒你，这里的return是多余的，如果return下面有代码就不会说是多余的了。
         }
@@ -120,9 +122,10 @@ export class Director{
                 // console.log(pencilBorder);
                 // console.log('分割线'+i);
 
-                if (Director.isStrike(birdsBorder, pencilBorder,i)) {
+                if (Director.isStrike(birdsBorder, pencilBorder)) {
                     console.log('撞到铅笔了');
                     this.isGameOver = true;
+                    this.dataStore.get('startButton').draw();
                     return;
                 }
             }
@@ -143,6 +146,7 @@ export class Director{
                 if (Director.isStrike(birdsBorder, pencilBorder,i)) {
                     console.log('撞到铅笔了');
                     this.isGameOver = true;
+                    this.dataStore.get('startButton').draw();
                     return;
                 }
             }

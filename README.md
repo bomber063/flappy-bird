@@ -2489,6 +2489,65 @@ this.dataStore.get('birds').birdsY[i]=this.dataStore.get('birds').y[i]
             return;
         }
 ```
+## 增加开始按钮类
+### 自己写的代码,可以兼容宽度超过375的浏览器
+* 在Main.js里面存入这个开始按钮StartButton
+```js
+    init(){
+        //首先重置游戏是没有结束的
+        this.director.isGameOver=false;
+        this.dataStore
+
+            .put('pencils',[])
+            .put('background',BackGround)
+            .put('land',Land)
+            .put('birds',Birds)
+            .put('startButton',StartButton);//增加的开始按钮
+            this.registerEvent();
+            }
+        // ...后面的代码省略
+```
+* 在Director.js中增加取出这个StartButton,并在`this.isGameOver = true`之前用draw方法。**一共有4处，这里的代码我没有优化好**
+```js
+        if(this.dataStore.get('birds').birdsY[0]<0){//判断小鸟是否撞击顶部
+            console.log('撞到顶部了');
+            this.dataStore.get('startButton').draw();
+            this.isGameOver = true;
+            return;
+        }
+```
+* 开始按钮类，在StartButton.js类里面创建代码
+```js
+//开始按钮
+import {Sprite} from "../base/Sprite.js";
+
+export class StartButton extends Sprite{
+    constructor() {
+        const img = Sprite.getImage('startButton')
+        super(img,
+            0, 0,
+            img.width, img.height,
+            (window.innerWidth - img.width) / 2, (window.innerHeight - img.height) / 2.5,//因为下面对this.x重新赋值了，所以这里的值在宽度大于375的时候会变化
+            img.width, img.height
+        );
+        if(window.innerWidth<=375){//这个if其实可以省略，因为前面的代码和整个if里面的代码是一样的。
+            this.x=(window.innerWidth - img.width) / 2;
+        }
+        if(window.innerWidth>375){//兼容大屏幕，宽度超过375
+            this.x=(375-img.width)/2;
+        }
+    }
+        draw(){
+            super.draw(
+                this.img,
+                0,0,
+                this.img.width,this.img.height,
+                this.x,this.y,
+                this.img.width,this.img.height
+            )
+        }
+}
+```
 ## if和else之间不可以打分号和别的代码
 * 下面的if和else之间**有代码会报错**
 ```js
