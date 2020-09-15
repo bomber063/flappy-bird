@@ -161,11 +161,11 @@ export class Director{
             score.scoreNumber++;
                 //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
         }
-        if(birds.birdsX[0]<=pencils[0].x+pencils[0].width===score.isScore===false){//小鸟左边小于铅笔右边，使变量isScore变成true
-                console.log(2);
-                score.isScore=true;//它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=true就无法进入这个if
-                //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
-        }
+        // if(birds.birdsX[0]<=pencils[0].x+pencils[0].width===score.isScore===false){//小鸟左边小于铅笔右边，使变量isScore变成true
+        //         console.log(2);
+        //         score.isScore=true;//它是用来控制速度的。这个用变量控制速度的方式我没有想到，if里面的代码只执行一次，score.isScore=true就无法进入这个if
+        //         //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
+        // }
     }
 
     run(){
@@ -184,6 +184,7 @@ export class Director{
                 if(pencils[0].x+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
                     pencils.splice(0,1)
                     pencils.splice(0,1)//这里用下面的shift也是一样的效果
+                    this.dataStore.get('score').isScore=true;
                     // pencils.shift()
                     // pencils.shift()
                     // this.createPencil()//这个会不断创建一大堆铅笔。

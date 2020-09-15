@@ -2628,6 +2628,30 @@ export class Score {
                 //因为canvas变化很快，所以需要一个变量来控制加分，只加一次，不然会每秒加60次
         }
 ```
+### 结合老师的代码思路
+* 老师的代码更加简洁，就是在销毁的时候把变量isScore修改为true即可
+```js
+    if(pencils[0].x+pencils[0].width<=0&&pencils.length===4){//这里x是会变成负值的。铅笔的宽度加上铅笔的左侧位置刚好超过canvas宽度的x方向的x=0这个地方，
+        pencils.splice(0,1)
+        pencils.splice(0,1)//这里用下面的shift也是一样的效果
+        this.dataStore.get('score').isScore=true;
+        // pencils.shift()
+        // pencils.shift()
+        // this.createPencil()//这个会不断创建一大堆铅笔。
+    }
+```
+### 兼容浏览器宽度超过375
+* 在score.js中增加大于375的判断。
+```js
+        if(window.innerWidth>375){
+            this.ctx.fillText(
+                '分数'+this.scoreNumber,
+                375/2-20,
+                window.innerHeight/18,
+                1000//这个是可选参数，最大宽度。
+            )
+        }
+```
 ## if和else之间不可以打分号和别的代码
 * 下面的if和else之间**有代码会报错**
 ```js
